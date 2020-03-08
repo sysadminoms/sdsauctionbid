@@ -44,10 +44,11 @@ public class SdsAuctionDelegate {
 
     public List<String> submitAuctionBid(Bids bids) throws Exception {
 
-
-        User trader = Optional.ofNullable(this.userRepository.findById(bids.getTraderId())
+        User trader = this.userRepository.findById(bids.getTraderId()).get();
+       Optional.ofNullable(trader)
                         .orElseThrow(() -> {
                             new Exception("Trader id is not valid");
+                            return null;
                         });
         Auction auction = this.auctionRepository.findById(bids.getAuctionId()).get();
         Optional.ofNullable(auction).map(auc -> {if(!auc.getCurrentlyActive()) {
@@ -58,7 +59,7 @@ public class SdsAuctionDelegate {
 
         return bids.getBids().stream().map(bid -> {
             try {
-                return this.processBid(bid, user, auction);
+                return this.processBid(bid, trader, auction);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
