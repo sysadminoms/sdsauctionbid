@@ -2,6 +2,7 @@ package com.oms.sdsauctionbid.controller;
 
 
 import com.oms.sdsauctionbid.domain.*;
+import com.oms.sdsauctionbid.domain.response.BidResponse;
 import com.oms.sdsauctionbid.logic.SdsAuctionDelegate;
 import com.oms.sdsauctionbid.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,7 @@ public class SdsAuctionController {
         String username = userDetails.getUsername();
         User userFromToken = userService.getUserDetailsByUserId(username);*/
         try {
-            return new ResponseEntity<>(sdsAuctionDelegate.submitAuctionBid(bids), OK);
+            return new ResponseEntity<BidResponse>(new BidResponse(0,sdsAuctionDelegate.submitAuctionBid(bids)), OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);

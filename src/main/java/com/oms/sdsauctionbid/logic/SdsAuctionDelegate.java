@@ -1,6 +1,5 @@
 package com.oms.sdsauctionbid.logic;
 
-import com.amazonaws.services.dynamodbv2.xspec.B;
 import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.domain.response.BidResponse;
 import com.oms.sdsauctionbid.domain.response.EachBidResponse;
@@ -11,19 +10,14 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.sql.Time;
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
 @Component
 public class SdsAuctionDelegate {
-
-    int totalSize;
-    int minBidSize;
-    boolean minBidSizeSet;
-    WinningAuction winningAuction;
     AuctionRepository auctionRepository;
     ProductRepository productRepository;
     AuctionBidRepository auctionBidRepository;
@@ -45,7 +39,7 @@ public class SdsAuctionDelegate {
         this.userRepository = userRepository;
     }
 
-    public BidResponse submitAuctionBid(Bids bids) throws Exception {
+    public List<EachBidResponse> submitAuctionBid(Bids bids) throws Exception {
 
         User trader = this.userRepository.findById(bids.getTraderId()).get();
        Optional.ofNullable(trader)
@@ -60,18 +54,13 @@ public class SdsAuctionDelegate {
         })
             .orElseThrow(() -> new Exception("Auction Not Found or has ended"));
 
-        List<EachBidResponse> eachBidResponse = bids.getBids().stream().map(bid -> {
+        return bids.getBids().stream().map(bid -> {
             try {
                 return this.processBid(bid, trader, auction);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
         }).collect(Collectors.toList());
-
-        BidResponse bidResponse = new BidResponse();
-        bidResponse.setBidResults(eachBidResponse);
-
-        return bidResponse;
     }
 
     private EachBidResponse processBid(Bid bid, User user, Auction auction) throws Exception {
