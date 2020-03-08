@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Bid {
-    public Long productId;
+    private Long productId;
     private int bidOneUp;
     private int bidTwoUp;
     private int bidThreeUp;

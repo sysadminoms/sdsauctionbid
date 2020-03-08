@@ -1,6 +1,9 @@
 package com.oms.sdsauctionbid.logic;
 
+import com.amazonaws.services.dynamodbv2.xspec.B;
 import com.oms.sdsauctionbid.domain.*;
+import com.oms.sdsauctionbid.domain.response.BidResponse;
+import com.oms.sdsauctionbid.domain.response.EachBidResponse;
 import com.oms.sdsauctionbid.repository.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -42,7 +45,7 @@ public class SdsAuctionDelegate {
         this.userRepository = userRepository;
     }
 
-    public List<String> submitAuctionBid(Bids bids) throws Exception {
+    public BidResponse submitAuctionBid(Bids bids) throws Exception {
 
         User trader = this.userRepository.findById(bids.getTraderId()).get();
        Optional.ofNullable(trader)
@@ -57,21 +60,23 @@ public class SdsAuctionDelegate {
         })
             .orElseThrow(() -> new Exception("Auction Not Found or has ended"));
 
-        return bids.getBids().stream().map(bid -> {
+        List<EachBidResponse> eachBidResponse = bids.getBids().stream().map(bid -> {
             try {
                 return this.processBid(bid, trader, auction);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
         }).collect(Collectors.toList());
+
+        BidResponse bidResponse = new BidResponse();
+        bidResponse.setBidResults(eachBidResponse);
+
+        return bidResponse;
     }
 
-    private String processBid(Bid bid, User user, Auction auction) throws Exception {
+    private EachBidResponse processBid(Bid bid, User user, Auction auction) throws Exception {
         Optional<Product> product = auction.getProducts().stream().filter(prod -> prod.getProductId() == bid.getProductId()).findFirst();
         Product prod = Optional.ofNullable(product).get().orElseThrow(() -> new Exception("Product Not Found"));
-
-       // AuctionBid auctionBid = this.auctionBidRepository.getAuctionBid(auction.getAuctionID(), user.getId(), prod.getProductId());
-      //  if (auctionBid == null) {
         AuctionBid  auctionBid = new AuctionBid();
             auctionBid.setAuction(auction);
             auctionBid.setUser(user);
@@ -108,7 +113,10 @@ public class SdsAuctionDelegate {
         auctionBid.setTotalCountDown(auctionBid.calculateTotalDownCount());
 
         auctionBidRepository.save(auctionBid);
-
-        return auctionBid.getBidId();
+        EachBidResponse eachBidResponse = new EachBidResponse();
+        eachBidResponse.setBarCode(auctionBid.getBidId());
+        eachBidResponse.setProductId(prod.getProductId());
+        eachBidResponse.setProductName(prod.getProductName());
+        return eachBidResponse;
     }
 }
