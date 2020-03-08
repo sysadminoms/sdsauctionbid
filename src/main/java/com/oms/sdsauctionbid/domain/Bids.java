@@ -9,5 +9,6 @@ import java.util.List;
 @Setter
 public class Bids {
     public Long auctionId;
+    public String traderId;
     public List<Bid> bids;
 }
