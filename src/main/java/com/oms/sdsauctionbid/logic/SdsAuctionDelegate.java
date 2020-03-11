@@ -76,27 +76,27 @@ public class SdsAuctionDelegate {
 
             auctionBid.setBidDateTime(customFormatter.print(dateTime));
         //}
-        auctionBid.setBidOneUp(bid.getBidOneUp());
-        auctionBid.setBidTwoUp(bid.getBidTwoUp());
-        auctionBid.setBidThreeUp(bid.getBidThreeUp());
-        auctionBid.setBidFourUp(bid.getBidFourUp());
-        auctionBid.setBidFiveUp(bid.getBidFiveUp());
-        auctionBid.setBidSixUp(bid.getBidSixUp());
-        auctionBid.setBidSevenUp(bid.getBidSevenUp());
-        auctionBid.setBidEightUp(bid.getBidEightUp());
-        auctionBid.setBidNineUp(bid.getBidNineUp());
-        auctionBid.setBidTenUp(bid.getBidTenUp());
+        auctionBid.setBidOneUp(bid.getOneUp());
+        auctionBid.setBidTwoUp(bid.getTwoUp());
+        auctionBid.setBidThreeUp(bid.getThreeUp());
+        auctionBid.setBidFourUp(bid.getFourUp());
+        auctionBid.setBidFiveUp(bid.getFiveUp());
+        auctionBid.setBidSixUp(bid.getSixUp());
+        auctionBid.setBidSevenUp(bid.getSevenUp());
+        auctionBid.setBidEightUp(bid.getEightUp());
+        auctionBid.setBidNineUp(bid.getNineUp());
+        auctionBid.setBidTenUp(bid.getTenUp());
 
-        auctionBid.setBidOneDown(bid.getBidOneDown());
-        auctionBid.setBidTwoDown(bid.getBidTwoDown());
-        auctionBid.setBidThreeDown(bid.getBidThreeDown());
-        auctionBid.setBidFourDown(bid.getBidFourDown());
-        auctionBid.setBidFiveDown(bid.getBidFiveDown());
-        auctionBid.setBidSixDown(bid.getBidSixDown());
-        auctionBid.setBidSevenDown(bid.getBidSevenDown());
-        auctionBid.setBidEightDown(bid.getBidEightDown());
-        auctionBid.setBidNineDown(bid.getBidNineDown());
-        auctionBid.setBidTenDown(bid.getBidTenDown());
+        auctionBid.setBidOneDown(bid.getOneDown());
+        auctionBid.setBidTwoDown(bid.getTwoDown());
+        auctionBid.setBidThreeDown(bid.getThreeDown());
+        auctionBid.setBidFourDown(bid.getFourDown());
+        auctionBid.setBidFiveDown(bid.getFiveDown());
+        auctionBid.setBidSixDown(bid.getSixDown());
+        auctionBid.setBidSevenDown(bid.getSevenDown());
+        auctionBid.setBidEightDown(bid.getEightDown());
+        auctionBid.setBidNineDown(bid.getNineDown());
+        auctionBid.setBidTenDown(bid.getTenDown());
 
         auctionBid.setTotalCountUp(auctionBid.calculateTotalUpCount());
         auctionBid.setTotalCountDown(auctionBid.calculateTotalDownCount());
