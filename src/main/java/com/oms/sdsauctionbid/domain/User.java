@@ -10,7 +10,9 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "SDS_UserDetails", uniqueConstraints = {
@@ -42,6 +44,10 @@ public class User implements Serializable, Identifiable<String> {
     @ManyToOne()
     @JoinColumn(name = "userTypeId")
     private UserType userType;
+
+    @OneToMany()
+    @JoinColumn(name = "accountTransactionId")
+    private List<UserAccountTransaction> userAccountTransaction = new ArrayList<>();
 
     @NotBlank
     private String firstName;

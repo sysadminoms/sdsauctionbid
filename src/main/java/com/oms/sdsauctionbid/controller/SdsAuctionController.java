@@ -40,5 +40,16 @@ public class SdsAuctionController {
         }
     }
 
+    @PostMapping(value = "/addAccountTransaction")
+    public ResponseEntity<?> addAccountTransaction(@RequestBody AccountTransaction accountTransaction) {
+
+        try {
+            return new ResponseEntity<BidResponse>(new BidResponse(0,sdsAuctionDelegate.submitAuctionBid(bids)), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
+                    , -1), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     //TODO - ADD LOGGING
 }
