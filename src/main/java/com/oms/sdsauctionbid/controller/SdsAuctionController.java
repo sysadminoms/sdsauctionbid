@@ -3,7 +3,9 @@ package com.oms.sdsauctionbid.controller;
 
 import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.domain.response.BidResponse;
+import com.oms.sdsauctionbid.logic.SdsAccountDelegate;
 import com.oms.sdsauctionbid.logic.SdsAuctionDelegate;
+import com.oms.sdsauctionbid.service.UserAccountTransactionService;
 import com.oms.sdsauctionbid.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +21,14 @@ import static org.springframework.http.HttpStatus.OK;
 public class SdsAuctionController {
 
     private final SdsAuctionDelegate sdsAuctionDelegate;
+    private final SdsAccountDelegate sdsAccountDelegate;
     private final UserService userService;
 
-    public SdsAuctionController(SdsAuctionDelegate sdsAuctionDelegate, UserService userService) {
+    public SdsAuctionController(SdsAuctionDelegate sdsAuctionDelegate, UserService userService,
+                                SdsAccountDelegate sdsAccountDelegate) {
         this.sdsAuctionDelegate = sdsAuctionDelegate;
         this.userService = userService;
+        this.sdsAccountDelegate = sdsAccountDelegate;
     }
 
     @PostMapping(value = "/submitBid")
@@ -42,9 +47,19 @@ public class SdsAuctionController {
 
     @PostMapping(value = "/addAccountTransaction")
     public ResponseEntity<?> addAccountTransaction(@RequestBody AccountTransaction accountTransaction) {
-
         try {
-            return new ResponseEntity<BidResponse>(new BidResponse(0,sdsAuctionDelegate.submitAuctionBid(bids)), OK);
+            return new ResponseEntity<>(new CustomMessageResponse("Success", 0), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
+                    , -1), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/getUserBalance")
+    public ResponseEntity<?> getUserAccountBalance(@RequestParam String userId) {
+        try {
+            return new ResponseEntity<>(new CustomMessageResponse(Double.toString(sdsAccountDelegate
+                    .getUserAccountBalance(userId)), 0), OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);

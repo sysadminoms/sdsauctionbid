@@ -1,9 +1,7 @@
 package com.oms.sdsauctionbid.service;
 
 
-import com.oms.sdsauctionbid.domain.FileUploadResponse;
-import com.oms.sdsauctionbid.domain.User;
-import com.oms.sdsauctionbid.domain.UserType;
+import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.repository.UserRepository;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -27,6 +25,19 @@ public class UserService implements UserDetailsService {
     private static final Logger LOG = LoggerFactory.getLogger(User.class);
 
     private static Timestamp timestamp;
+
+    public Double findUserBalance(String userId) {
+        User user = this.userRepository.findById(userId).get();
+        return Optional.ofNullable(user).map(actualUser -> findUserBalanceForUser(actualUser))
+                .orElse(Double.parseDouble("0"));
+    }
+
+    public Double findUserBalanceForUser(User user) {
+        List<UserAccountTransaction> accountTransactionList = user.getUserAccountTransaction();
+        return accountTransactionList
+                .stream().map(accountTransaction -> accountTransaction.getTransactionAmount())
+                .collect(Collectors.summingDouble(Double::doubleValue));
+    }
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;

@@ -2,29 +2,31 @@ package com.oms.sdsauctionbid.logic;
 
 import com.oms.sdsauctionbid.domain.AccountTransaction;
 import com.oms.sdsauctionbid.domain.User;
-import com.oms.sdsauctionbid.domain.UserAccountTransaction;
 import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
 import com.oms.sdsauctionbid.repository.UserRepository;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import com.oms.sdsauctionbid.service.UserAccountTransactionService;
+import com.oms.sdsauctionbid.service.UserService;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.Optional;
 
 @Component
 public class SdsAccountDelegate {
 
     UserRepository userRepository;
+    UserService userService;
     AccountTransactionRepository accountTransactionRepository;
+    UserAccountTransactionService userAccountTransactionService;
 
-    public SdsAccountDelegate(UserRepository userRepository, AccountTransactionRepository accountTransactionRepository) {
+    public SdsAccountDelegate(UserRepository userRepository, AccountTransactionRepository accountTransactionRepository,
+                              UserAccountTransactionService userAccountTransactionService, UserService userService) {
         this.userRepository = userRepository;
         this.accountTransactionRepository = accountTransactionRepository;
+        this.userAccountTransactionService = userAccountTransactionService;
+        this.userService = userService;
     }
 
-   public void addAccountTransaction(AccountTransaction accountTransaction) {
+   public String addAccountTransaction(AccountTransaction accountTransaction) {
 
        User user = this.userRepository.findById(accountTransaction.getUserId()).get();
        Optional.ofNullable(user)
@@ -32,23 +34,15 @@ public class SdsAccountDelegate {
                    new Exception("User id is not valid");
                    return null;
                });
-       processAccountTransactionForUser(user, accountTransaction.getTransactionId(),
+       userAccountTransactionService.processAccountTransactionForUser(user, accountTransaction.getTransactionId(),
                accountTransaction.getTransactionAmount(), accountTransaction.getTransactionStatus(),
                accountTransaction.getTransactionType());
+       return "Success";
     }
 
-    public void processAccountTransactionForUser(User user, String transactionId, Double transactionAmount,
-                                                  Boolean transactionStatus, String transactionType) {
-        UserAccountTransaction userAccountTransaction = new UserAccountTransaction();
-        userAccountTransaction.setUser(user);
-        DateTime dateTime = new DateTime(); // Initializes with the current date and time
-        DateTimeFormatter customFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
-        userAccountTransaction.setTransactionDateTime(customFormatter.print(dateTime));
-        userAccountTransaction.setTransactionEpochTime(Instant.now().toEpochMilli());
-        userAccountTransaction.setTransactionId(transactionId);
-        userAccountTransaction.setTransactionAmount(transactionAmount);
-        userAccountTransaction.setTransactionStatus(transactionStatus);
-        userAccountTransaction.setTransactionType(transactionType);
-        accountTransactionRepository.save(userAccountTransaction);
+    public double getUserAccountBalance(String userId) {
+        return this.userService.findUserBalance(userId);
     }
+
+
 }
