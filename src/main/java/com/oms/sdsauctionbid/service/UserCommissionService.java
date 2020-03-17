@@ -1,15 +1,9 @@
 package com.oms.sdsauctionbid.service;
 
 import com.oms.sdsauctionbid.domain.User;
-import com.oms.sdsauctionbid.domain.UserAccountTransaction;
 import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
-import com.oms.sdsauctionbid.utils.TransactionType;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.Map;
 
 import static com.oms.sdsauctionbid.utils.TransactionType.*;
@@ -24,16 +18,28 @@ public class UserCommissionService {
         this.accountTransactionRepository = accountTransactionRepository;
     }
 
-    public void assignCommissionForTransaction(Map<Integer,User> userCommissionMap,
-                                                  Map<String, Integer> transactionAmountMap) {
-      transactionAmountMap.forEach((k,v) -> {
-          userCommissionMap.forEach((commissionK,commissionV) -> {
-              userAccountTransactionService.processAccountTransactionForUser(commissionV, k,
-                      (double)(commissionK*v)/100, true, "Commission",
-                        BROKERAGE);
-          });
+    public void assignCommissionForAllTransactions(Map<Integer,User> userCommissionMap,
+                                                  Map<String, Double> transactionAmountMap) {
+      transactionAmountMap.forEach((transactionId, transactionAmount) -> {
+          assignUserCommissionForOneTransaction(userCommissionMap, transactionId, transactionAmount);
+      });
+    }
+
+    public void assignUserCommissionForOneTransaction(Map<Integer, User> userCommissionMap, String transactionId,
+                                                      Double transactionAmount) {
+        userCommissionMap.forEach((commissionPercentage, user) -> {
+            assignOneUserCommissionForOneTransaction(user, transactionId, transactionAmount, commissionPercentage);
         });
     }
+
+    private void assignOneUserCommissionForOneTransaction(User user, String transactionId, double transactionAmount,
+                                                          Integer commissionPercentage) {
+        userAccountTransactionService.processAccountTransactionForUser(user, transactionId,
+                (transactionAmount * commissionPercentage)/100, true,
+                "Commission", BROKERAGE);
+    }
+
+
 }
 
 

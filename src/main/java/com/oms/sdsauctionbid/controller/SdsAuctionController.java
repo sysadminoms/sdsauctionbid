@@ -33,12 +33,12 @@ public class SdsAuctionController {
 
     @PostMapping(value = "/submitBid")
     public ResponseEntity<?> submitBid(@RequestBody Bids bids) {
-/*        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         String username = userDetails.getUsername();
-        User userFromToken = userService.getUserDetailsByUserId(username);*/
+        User userFromToken = userService.getUserDetailsByUserId(username);
         try {
-            return new ResponseEntity<BidResponse>(new BidResponse(0,sdsAuctionDelegate.submitAuctionBid(bids)), OK);
+            return new ResponseEntity<BidResponse>(new BidResponse(0,sdsAuctionDelegate.submitAuctionBid(bids, userFromToken)), OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);
