@@ -3,6 +3,7 @@ package com.oms.sdsauctionbid.service;
 import com.oms.sdsauctionbid.domain.User;
 import com.oms.sdsauctionbid.domain.UserAccountTransaction;
 import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
+import com.oms.sdsauctionbid.utils.TransactionType;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -20,7 +21,7 @@ public class UserAccountTransactionService {
     }
 
     public void processAccountTransactionForUser(User user, String transactionId, Double transactionAmount,
-                                                 Boolean transactionStatus, String transactionType) {
+                                                 Boolean transactionStatus, String transactionDetails, TransactionType transactionType) {
         UserAccountTransaction userAccountTransaction = new UserAccountTransaction();
         userAccountTransaction.setUser(user);
         DateTime dateTime = new DateTime(); // Initializes with the current date and time
@@ -30,6 +31,7 @@ public class UserAccountTransactionService {
         userAccountTransaction.setTransactionId(transactionId);
         userAccountTransaction.setTransactionAmount(transactionAmount);
         userAccountTransaction.setTransactionStatus(transactionStatus);
+        userAccountTransaction.setTransactionDetails(transactionDetails);
         userAccountTransaction.setTransactionType(transactionType);
         accountTransactionRepository.save(userAccountTransaction);
     }

@@ -122,6 +122,9 @@ public class User implements Serializable, Identifiable<String> {
     @JoinColumn(name = "commissionId")
     private UserComission userCommissionId;
 
+    @Column(name="user_commission_percentage")
+    private Integer userCommissionPercentage;
+
     @Column(name="minimum_balance")
     private Double minimumBalance;
 

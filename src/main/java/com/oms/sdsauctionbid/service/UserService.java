@@ -13,9 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -179,6 +177,26 @@ public class UserService implements UserDetailsService {
             return "ACCEPTED";
         } else
             return "NOT_FOUND";
+    }
+
+    public Map<Integer, User> getCommissionMapForUser(User user,Integer totalCommissionPercentage) {
+        Map<Integer,User> commissionUserMap = new HashMap<>();
+        int commission;
+        totalCommissionPercentage = totalCommissionPercentage - user.getUserCommissionPercentage();
+        commissionUserMap.put(user.getUserCommissionPercentage(),user);
+        User parentUser = user.getParent();
+        while(parentUser != null){
+            if(parentUser.getParent() != null){
+                commission = parentUser.getUserCommissionPercentage();
+                totalCommissionPercentage = totalCommissionPercentage - commission;
+            }else{
+                commission = totalCommissionPercentage;
+            }
+            commissionUserMap.put(commission,parentUser);
+            parentUser = parentUser.getParent();
+
+        }
+        return  commissionUserMap;
     }
 }
 

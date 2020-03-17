@@ -1,5 +1,6 @@
 package com.oms.sdsauctionbid.domain;
 
+import com.oms.sdsauctionbid.utils.TransactionType;
 import lombok.Getter;
 import lombok.Setter;
 import org.joda.time.DateTime;
@@ -36,7 +37,16 @@ public class UserAccountTransaction {
     private String transactionId;
 
     @Column(name="transaction_type")
-    private String transactionType;
+    private TransactionType transactionType;
+
+    @Column(name = "running_balance")
+    private double runningBalance;
+
+     @Column(name = "available_balance")
+    private double availableBalance;
+
+    @Column(name = "transaction_details")
+    private String transactionDetails;
 
     @Column(name="transaction_status")
     private Boolean transactionStatus;

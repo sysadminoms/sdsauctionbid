@@ -1,5 +1,6 @@
 package com.oms.sdsauctionbid.domain;
 
+import com.oms.sdsauctionbid.utils.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +16,9 @@ public class AccountTransaction {
 
     private String transactionId;
 
-    private String transactionType;
+    private String transactionDetail;
+
+    private TransactionType transactionType;
 
     private Boolean transactionStatus;
 }
