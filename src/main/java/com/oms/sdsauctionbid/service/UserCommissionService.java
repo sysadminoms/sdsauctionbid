@@ -14,8 +14,9 @@ public class UserCommissionService {
         private AccountTransactionRepository accountTransactionRepository;
         private UserAccountTransactionService userAccountTransactionService;
 
-    public UserCommissionService(AccountTransactionRepository accountTransactionRepository) {
+    public UserCommissionService(AccountTransactionRepository accountTransactionRepository, UserAccountTransactionService userAccountTransactionService) {
         this.accountTransactionRepository = accountTransactionRepository;
+        this.userAccountTransactionService = userAccountTransactionService;
     }
 
     public void assignCommissionForAllTransactions(Map<Integer,User> userCommissionMap,

@@ -37,6 +37,7 @@ public class UserAccountTransaction {
     private String transactionId;
 
     @Column(name="transaction_type")
+    @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
     @Column(name = "running_balance")

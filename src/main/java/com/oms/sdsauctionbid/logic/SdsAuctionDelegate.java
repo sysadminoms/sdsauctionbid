@@ -56,10 +56,10 @@ public class SdsAuctionDelegate {
                             new Exception("Trader id is not valid");
                             return null;
                         });
-        Auction auction = this.auctionRepository.findById(bids.getAuctionId()).get();
-        Optional.ofNullable(auction).map(auc -> {if(!auc.getCurrentlyActive()) {
+        Optional<Auction> optionalAuction = this.auctionRepository.findById(bids.getAuctionId());
+       Auction auction =  Optional.ofNullable(optionalAuction).map(auc -> {if(!auc.get().getCurrentlyActive()) {
             throw new RuntimeException("Auction has Ended");}
-        return auc;
+        return auc.get();
         })
             .orElseThrow(() -> new Exception("Auction Not Found or has ended"));
 

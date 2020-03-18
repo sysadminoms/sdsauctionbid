@@ -182,7 +182,7 @@ public class UserService implements UserDetailsService {
     public Map<Integer, User> getCommissionMapForUser(User user,Integer totalCommissionPercentage) {
         Map<Integer,User> commissionUserMap = new HashMap<>();
         int commission;
-        totalCommissionPercentage = totalCommissionPercentage - user.getUserCommissionPercentage();
+        totalCommissionPercentage = totalCommissionPercentage - Optional.ofNullable(user.getUserCommissionPercentage()).orElse(0);
         commissionUserMap.put(user.getUserCommissionPercentage(),user);
         User parentUser = user.getParent();
         while(parentUser != null){
