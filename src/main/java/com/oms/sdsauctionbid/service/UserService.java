@@ -2,6 +2,7 @@ package com.oms.sdsauctionbid.service;
 
 
 import com.oms.sdsauctionbid.domain.*;
+import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
 import com.oms.sdsauctionbid.repository.UserRepository;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -19,26 +20,36 @@ import java.util.stream.Collectors;
 @Service
 public class UserService implements UserDetailsService {
     private UserRepository userRepository;
+    private AccountTransactionRepository accountTransactionRepository;
 
     private static final Logger LOG = LoggerFactory.getLogger(User.class);
 
     private static Timestamp timestamp;
 
+/*
     public Double findUserBalance(String userId) {
         User user = this.userRepository.findById(userId).get();
         return Optional.ofNullable(user).map(actualUser -> findUserBalanceForUser(actualUser))
                 .orElse(Double.parseDouble("0"));
     }
+*/
 
-    public Double findUserBalanceForUser(User user) {
+/*    public Double findUserBalanceForUser(User user) {
         List<UserAccountTransaction> accountTransactionList = user.getUserAccountTransaction();
         return accountTransactionList
                 .stream().map(accountTransaction -> accountTransaction.getTransactionAmount())
                 .collect(Collectors.summingDouble(Double::doubleValue));
+    }*/
+
+    public Double findUserBalance(String userId) {
+
+        return Optional.ofNullable(accountTransactionRepository.getAvailableBalance(userId))
+                .orElse(Double.parseDouble("0"));
     }
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, AccountTransactionRepository accountTransactionRepository) {
         this.userRepository = userRepository;
+        this.accountTransactionRepository = accountTransactionRepository;
     }
 
     public User getUserDetailsById(String id) {

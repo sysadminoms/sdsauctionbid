@@ -4,6 +4,7 @@ import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.domain.response.BidResponse;
 import com.oms.sdsauctionbid.domain.response.EachBidResponse;
 import com.oms.sdsauctionbid.repository.*;
+import com.oms.sdsauctionbid.service.UserAccountTransactionService;
 import com.oms.sdsauctionbid.service.UserCommissionService;
 import com.oms.sdsauctionbid.service.UserService;
 import org.joda.time.DateTime;
@@ -18,6 +19,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.oms.sdsauctionbid.utils.TransactionType.BROKERAGE;
+
 
 @Component
 public class SdsAuctionDelegate {
@@ -29,6 +32,7 @@ public class SdsAuctionDelegate {
     UserRepository userRepository;
     UserService userService;
     UserCommissionService userCommissionService;
+    UserAccountTransactionService userAccountTransactionService;
 
     @Autowired
     public SdsAuctionDelegate(AuctionRepository auctionRepository, ProductRepository productRepository,
@@ -37,7 +41,8 @@ public class SdsAuctionDelegate {
                               AuctionWinnerRepository auctionWinnerRepository,
                               UserRepository userRepository,
                               UserService userService,
-                              UserCommissionService userCommissionService) {
+                              UserCommissionService userCommissionService,
+                              UserAccountTransactionService userAccountTransactionService) {
         this.auctionRepository = auctionRepository;
         this.productRepository = productRepository;
         this.auctionBidRepository = auctionBidRepository;
@@ -46,6 +51,7 @@ public class SdsAuctionDelegate {
         this.userRepository = userRepository;
         this.userService = userService;
         this.userCommissionService = userCommissionService;
+        this.userAccountTransactionService = userAccountTransactionService;
     }
 
     public List<EachBidResponse> submitAuctionBid(Bids bids, User dealer) throws Exception {
@@ -124,6 +130,10 @@ public class SdsAuctionDelegate {
 
 
         auctionBidRepository.save(auctionBid);
+        userAccountTransactionService.processAccountTransactionForUser(user, auctionBid.getBidId(),
+                ((double) (-1*(auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
+                        Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0))), true,
+                "Commission", BROKERAGE);
 
         userCommissionService.assignUserCommissionForOneTransaction(getCommissionMapForUser, auctionBid.getBidId(),
                 (double) ((auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*

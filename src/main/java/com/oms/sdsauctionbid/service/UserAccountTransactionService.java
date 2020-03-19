@@ -10,6 +10,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 public class UserAccountTransactionService {
@@ -32,6 +33,9 @@ public class UserAccountTransactionService {
         userAccountTransaction.setTransactionAmount(transactionAmount);
         userAccountTransaction.setTransactionStatus(transactionStatus);
         userAccountTransaction.setTransactionDetails(transactionDetails);
+        Double availableBalance = Optional.ofNullable(accountTransactionRepository
+                .getAvailableBalance(user.getId())).orElse(0.0)+transactionAmount;
+        userAccountTransaction.setAvailableBalance(availableBalance);
         userAccountTransaction.setTransactionType(transactionType);
         accountTransactionRepository.save(userAccountTransaction);
     }

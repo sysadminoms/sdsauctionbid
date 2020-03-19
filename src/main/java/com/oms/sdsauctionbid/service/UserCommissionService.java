@@ -37,7 +37,7 @@ public class UserCommissionService {
                                                           Integer commissionPercentage) {
         userAccountTransactionService.processAccountTransactionForUser(user, transactionId,
                 (transactionAmount * commissionPercentage)/100, true,
-                "Commission", BROKERAGE);
+                "Commission", COMMISSION);
     }
 
 
