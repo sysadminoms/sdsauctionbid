@@ -1,6 +1,7 @@
 package com.oms.sdsauctionbid.logic;
 
 import com.oms.sdsauctionbid.domain.*;
+import com.oms.sdsauctionbid.domain.response.AllBidsResponse;
 import com.oms.sdsauctionbid.domain.response.BidResponse;
 import com.oms.sdsauctionbid.domain.response.EachBidResponse;
 import com.oms.sdsauctionbid.repository.*;
@@ -54,7 +55,7 @@ public class SdsAuctionDelegate {
         this.userAccountTransactionService = userAccountTransactionService;
     }
 
-    public List<EachBidResponse> submitAuctionBid(Bids bids, User dealer) throws Exception {
+    public AllBidsResponse submitAuctionBid(Bids bids, User dealer) throws Exception {
 
         User trader = this.userRepository.findById(bids.getTraderId()).get();
        Optional.ofNullable(trader)
@@ -77,13 +78,16 @@ public class SdsAuctionDelegate {
                 .getCommissionMapForUser(dealer, (int)(auctionSettings.getCommission() * 100));
 
 
-        return bids.getBids().stream().map(bid -> {
+        List<EachBidResponse> bidList =  bids.getBids().stream().map(bid -> {
             try {
                 return this.processBid(bid, trader, auction, dealer, getCommissionMapForUser, auctionSettings);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
         }).collect(Collectors.toList());
+
+        double userAccountBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getUserId())).orElse(0.0);
+        return new AllBidsResponse(userAccountBalance, bidList);
     }
 
     private EachBidResponse processBid(Bid bid, User user, Auction auction, User dealer,
