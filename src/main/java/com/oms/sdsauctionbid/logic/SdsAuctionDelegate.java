@@ -86,7 +86,7 @@ public class SdsAuctionDelegate {
             }
         }).collect(Collectors.toList());
 
-        double userAccountBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getUserId())).orElse(0.0);
+        double userAccountBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId())).orElse(0.0);
         return new AllBidsResponse(userAccountBalance, bidList);
     }
 
@@ -134,7 +134,7 @@ public class SdsAuctionDelegate {
 
 
         auctionBidRepository.save(auctionBid);
-        userAccountTransactionService.processAccountTransactionForUser(user, auctionBid.getBidId(),
+        userAccountTransactionService.processAccountTransactionForUser(dealer, auctionBid.getBidId(),
                 ((double) (-1*(auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
                         Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0))), true,
                 "Commission", BROKERAGE);
