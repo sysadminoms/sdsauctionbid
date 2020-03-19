@@ -5,6 +5,7 @@ import com.oms.sdsauctionbid.domain.UserAccountTransaction;
 import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
 import com.oms.sdsauctionbid.utils.TransactionType;
 import org.joda.time.DateTime;
+import static com.oms.sdsauctionbid.utils.DoubleFormatter.round;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class UserAccountTransactionService {
         userAccountTransaction.setTransactionDetails(transactionDetails);
         Double availableBalance = Optional.ofNullable(accountTransactionRepository
                 .getAvailableBalance(user.getId())).orElse(0.0)+transactionAmount;
-        userAccountTransaction.setAvailableBalance(availableBalance);
+        userAccountTransaction.setAvailableBalance(round(availableBalance,2));
         userAccountTransaction.setTransactionType(transactionType);
         accountTransactionRepository.save(userAccountTransaction);
     }
