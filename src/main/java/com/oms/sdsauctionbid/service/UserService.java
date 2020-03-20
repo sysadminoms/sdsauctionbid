@@ -196,14 +196,16 @@ public class UserService implements UserDetailsService {
         totalCommissionPercentage = totalCommissionPercentage - Optional.ofNullable(user.getUserCommissionPercentage()).orElse(0);
         commissionUserMap.put(user.getUserCommissionPercentage(),user);
         User parentUser = user.getParent();
-        while(parentUser != null){
-            if(parentUser.getParent() != null){
-                commission = parentUser.getUserCommissionPercentage();
+        String userId = user.getId();
+        while(parentUser != null && userId != parentUser.getId()){
+            if(parentUser.getParent() != null && userId != parentUser.getId()){
+                commission = Optional.ofNullable(parentUser.getUserCommissionPercentage()).orElse(0);
                 totalCommissionPercentage = totalCommissionPercentage - commission;
             }else{
                 commission = totalCommissionPercentage;
             }
             commissionUserMap.put(commission,parentUser);
+            userId = parentUser.getId();
             parentUser = parentUser.getParent();
 
         }
