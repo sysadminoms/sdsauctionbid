@@ -34,9 +34,11 @@ public class UserAccountTransactionService {
         userAccountTransaction.setTransactionAmount(transactionAmount);
         userAccountTransaction.setTransactionStatus(transactionStatus);
         userAccountTransaction.setTransactionDetails(transactionDetails);
-        Double availableBalance = Optional.ofNullable(accountTransactionRepository
-                .getAvailableBalance(user.getId())).orElse(0.0)+transactionAmount;
-        userAccountTransaction.setAvailableBalance(round(availableBalance,2));
+        Double balance = Optional.ofNullable(accountTransactionRepository
+                .getAvailableBalance(user.getId())).orElse(0.0);
+        userAccountTransaction.setRunningBalance(balance);
+        balance = balance + transactionAmount;
+        userAccountTransaction.setAvailableBalance(round(balance,2));
         userAccountTransaction.setTransactionType(transactionType);
         accountTransactionRepository.save(userAccountTransaction);
     }
