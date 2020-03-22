@@ -74,6 +74,14 @@ public class SdsAuctionDelegate {
         Optional.ofNullable(auctionSettings)
                 .orElseThrow(() -> new Exception("Auction Settings Not Found"));
 
+        Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
+                .orElse(Double.parseDouble("0"));
+
+        int noOfBids = bids.getBids().stream().collect(Collectors.summingInt(Bid::getTotalBids));
+
+        if ((userBalance - noOfBids * Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)) < 0) {
+            throw new Exception("Balance is Low, please increase balance");
+        }
         Map<Integer, User> getCommissionMapForUser = userService
                 .getCommissionMapForUser(dealer, (int)(auctionSettings.getCommission() * 100));
 

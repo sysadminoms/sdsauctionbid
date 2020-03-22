@@ -2,6 +2,7 @@ package com.oms.sdsauctionbid.controller;
 
 
 import com.oms.sdsauctionbid.domain.*;
+import com.oms.sdsauctionbid.domain.request.BidIds;
 import com.oms.sdsauctionbid.domain.response.BidResponse;
 import com.oms.sdsauctionbid.logic.SdsAccountDelegate;
 import com.oms.sdsauctionbid.logic.SdsAuctionDelegate;
@@ -49,6 +50,16 @@ public class SdsAuctionController {
     public ResponseEntity<?> addAccountTransaction(@RequestBody AccountTransaction accountTransaction) {
         try {
             return new ResponseEntity<>(new CustomMessageResponse("Success", 0), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
+                    , -1), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping(value = "/getAccountTransactionsForBids")
+    public ResponseEntity<?> getAccountTransactionsForBids(@RequestBody BidIds bidIds) {
+        try {
+            return new ResponseEntity<>(sdsAccountDelegate.getAccountTransactionsForBids(bidIds), OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);

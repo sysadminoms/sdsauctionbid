@@ -2,13 +2,17 @@ package com.oms.sdsauctionbid.logic;
 
 import com.oms.sdsauctionbid.domain.AccountTransaction;
 import com.oms.sdsauctionbid.domain.User;
+import com.oms.sdsauctionbid.domain.request.BidIds;
+import com.oms.sdsauctionbid.domain.response.TransactionForBid;
 import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
 import com.oms.sdsauctionbid.repository.UserRepository;
 import com.oms.sdsauctionbid.service.UserAccountTransactionService;
 import com.oms.sdsauctionbid.service.UserService;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class SdsAccountDelegate {
@@ -42,6 +46,11 @@ public class SdsAccountDelegate {
 
     public double getUserAccountBalance(String userId) {
         return this.userService.findUserBalance(userId);
+    }
+
+    public List<?> getAccountTransactionsForBids(BidIds bidIds) {
+        return bidIds.getBidIds().stream().map(bidId ->
+                this.accountTransactionRepository.getTransactionsForBid(bidId.getBidId())).collect(Collectors.toList());
     }
 
 
