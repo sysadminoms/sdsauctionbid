@@ -125,6 +125,10 @@ public class AuctionBid {
     @Column(name="total_count_down")
     private int totalCountDown;
 
+    @Column(name="ticket_status")
+    @Enumerated(EnumType.STRING)
+    private TicketStatus ticketStatus;
+
     public int calculateTotalUpCount() {
         return Optional.ofNullable(this.bidOneUp).orElse(0)
                 + Optional.ofNullable(this.bidTwoUp).orElse(0)
