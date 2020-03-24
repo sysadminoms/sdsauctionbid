@@ -1,4 +1,4 @@
-package com.sds.sdsauctionmanagement.utils;
+package com.oms.sdsauctionbid.utils;
 
 public enum TicketStatus {
     NOT_CLAIMED,
