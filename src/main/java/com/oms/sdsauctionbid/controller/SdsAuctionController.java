@@ -77,5 +77,16 @@ public class SdsAuctionController {
         }
     }
 
+    @GetMapping(value = "/claimTicket")
+    public ResponseEntity<?> claimTicket(@RequestParam String bidId, @RequestParam String sellOrDelivery) {
+        try {
+            return new ResponseEntity<>(new CustomMessageResponse(Double.toString(sdsAccountDelegate
+                    .getUserAccountBalance(userId)), 0), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
+                    , -1), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     //TODO - ADD LOGGING
 }
