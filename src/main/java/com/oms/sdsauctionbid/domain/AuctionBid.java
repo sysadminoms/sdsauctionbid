@@ -1,5 +1,6 @@
 package com.oms.sdsauctionbid.domain;
 
+import com.oms.sdsauctionbid.utils.TicketStatus;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;

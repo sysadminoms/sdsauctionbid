@@ -8,6 +8,7 @@ import com.oms.sdsauctionbid.repository.*;
 import com.oms.sdsauctionbid.service.UserAccountTransactionService;
 import com.oms.sdsauctionbid.service.UserCommissionService;
 import com.oms.sdsauctionbid.service.UserService;
+import com.oms.sdsauctionbid.utils.TicketStatus;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -101,12 +102,12 @@ public class SdsAuctionDelegate {
     private EachBidResponse processBid(Bid bid, User user, Auction auction, User dealer,
                                        Map<Integer, User> getCommissionMapForUser, AuctionSettings auctionSettings)
             throws Exception {
-
-        Optional<Product> product = auction.getProducts().stream().filter(prod -> prod.getProductId()
-                == bid.getProductId()).findFirst();
-        Product prod = Optional.ofNullable(product).get().orElseThrow(() -> new Exception("Product Not Found"));
-        AuctionBid  auctionBid = new AuctionBid();
+            Optional<Product> product = auction.getProducts().stream().filter(prod -> prod.getProductId()
+                    == bid.getProductId()).findFirst();
+            Product prod = Optional.ofNullable(product).get().orElseThrow(() -> new Exception("Product Not Found"));
+            AuctionBid  auctionBid = new AuctionBid();
             auctionBid.setAuction(auction);
+            auctionBid.setTicketStatus(TicketStatus.NOT_CLAIMED);
             auctionBid.setUser(user);
             auctionBid.setBidTime(Instant.now().toEpochMilli());
             auctionBid.setProduct(prod);
@@ -114,31 +115,30 @@ public class SdsAuctionDelegate {
             DateTimeFormatter customFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
             auctionBid.setBidDateTime(customFormatter.print(dateTime));
-        //}
-        auctionBid.setBidOneUp(bid.getOneUp());
-        auctionBid.setBidTwoUp(bid.getTwoUp());
-        auctionBid.setBidThreeUp(bid.getThreeUp());
-        auctionBid.setBidFourUp(bid.getFourUp());
-        auctionBid.setBidFiveUp(bid.getFiveUp());
-        auctionBid.setBidSixUp(bid.getSixUp());
-        auctionBid.setBidSevenUp(bid.getSevenUp());
-        auctionBid.setBidEightUp(bid.getEightUp());
-        auctionBid.setBidNineUp(bid.getNineUp());
-        auctionBid.setBidTenUp(bid.getTenUp());
+            auctionBid.setBidOneUp(bid.getOneUp());
+            auctionBid.setBidTwoUp(bid.getTwoUp());
+            auctionBid.setBidThreeUp(bid.getThreeUp());
+            auctionBid.setBidFourUp(bid.getFourUp());
+            auctionBid.setBidFiveUp(bid.getFiveUp());
+            auctionBid.setBidSixUp(bid.getSixUp());
+            auctionBid.setBidSevenUp(bid.getSevenUp());
+            auctionBid.setBidEightUp(bid.getEightUp());
+            auctionBid.setBidNineUp(bid.getNineUp());
+            auctionBid.setBidTenUp(bid.getTenUp());
 
-        auctionBid.setBidOneDown(bid.getOneDown());
-        auctionBid.setBidTwoDown(bid.getTwoDown());
-        auctionBid.setBidThreeDown(bid.getThreeDown());
-        auctionBid.setBidFourDown(bid.getFourDown());
-        auctionBid.setBidFiveDown(bid.getFiveDown());
-        auctionBid.setBidSixDown(bid.getSixDown());
-        auctionBid.setBidSevenDown(bid.getSevenDown());
-        auctionBid.setBidEightDown(bid.getEightDown());
-        auctionBid.setBidNineDown(bid.getNineDown());
-        auctionBid.setBidTenDown(bid.getTenDown());
+            auctionBid.setBidOneDown(bid.getOneDown());
+            auctionBid.setBidTwoDown(bid.getTwoDown());
+            auctionBid.setBidThreeDown(bid.getThreeDown());
+            auctionBid.setBidFourDown(bid.getFourDown());
+            auctionBid.setBidFiveDown(bid.getFiveDown());
+            auctionBid.setBidSixDown(bid.getSixDown());
+            auctionBid.setBidSevenDown(bid.getSevenDown());
+            auctionBid.setBidEightDown(bid.getEightDown());
+            auctionBid.setBidNineDown(bid.getNineDown());
+            auctionBid.setBidTenDown(bid.getTenDown());
 
-        auctionBid.setTotalCountUp(auctionBid.calculateTotalUpCount());
-        auctionBid.setTotalCountDown(auctionBid.calculateTotalDownCount());
+            auctionBid.setTotalCountUp(auctionBid.calculateTotalUpCount());
+            auctionBid.setTotalCountDown(auctionBid.calculateTotalDownCount());
 
 
         auctionBidRepository.save(auctionBid);
