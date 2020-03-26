@@ -15,6 +15,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -159,62 +160,81 @@ public class SdsAuctionDelegate {
     }
 
 
-    public void claimTicket(Long bidId, String type, User dealerId) throws Exception {
+    public String claimTicket(Long bidId, String type, User dealer) throws Exception {
         AuctionBid winningBid;
         if(type == "Sell" || type == "Claim") {
             User sundryUser = userRepository.getUserByUserId("SUNDRY");
             Optional<AuctionBid> auctionBid = auctionBidRepository.findById(bidId);
-           if(auctionBid.isPresent()) {
-               winningBid = auctionBid.get();
-           } else {
-               throw new Exception("Auction Bid is not present for the id provided");
-           }
-            Optional.ofNullable(sundryUser).map(user -> {
-                return Optional.ofNullable(winningBid).map(bid -> {
-                    if(bid.getTicketStatus() != TicketStatus.NOT_CLAIMED) {
-                        if(bid.getTicketStatus() == TicketStatus.NOT_WINNING) {
-                            return "Opps ! Sorry , This is not Winning Ticket Number";
-                        }
-                        return bid.getTicketStatus();
+            if (auctionBid.isPresent()) {
+                winningBid = auctionBid.get();
+            } else {
+                throw new Exception("Auction Bid is not present for the id provided");
+            }
+            if (sundryUser != null) {
+                if (winningBid != null) {
+                    if (winningBid.getTicketStatus() != TicketStatus.NOT_CLAIMED) {
+                        return getTicketStatusMessage(winningBid);
                     }
                     AuctionWinner winner = auctionWinnerRepository
-                            .getAuctionWinners(bid.getAuction().getAuctionID(),
-                                    bid.getProduct().getProductId());
-
-                    if(bid.calculateWinningBidExist(winner.getAuctionWinningPercentage()) > 0) {
-
+                            .getAuctionWinners(winningBid.getAuction().getAuctionID(),
+                                    winningBid.getProduct().getProductId());
+                    int winBidValue = winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage());
+                    if (winBidValue > 0) {
+                            return processClaimTicket(winningBid, winBidValue, dealer, sundryUser, winner, type);
+                        }
                     }
-                    return null;
-                });
-
-
-            }).orElse(
-                    throw new Exception("Sundry User is not present");
+                else {
+                    throw new Exception("Bid not valid");
+                }
+            }
+            else {
+                throw new Exception("Sundry User is not present");
+            }
         }
         else {
             throw new Exception("Please provide if you want to Sell your ticket or Claim it");
         }
+        return null;
     }
 
-    private String processClaimTicket(AuctionBid ticket, int value, User dealer, User sundryUser, AuctionWinner winner, String claimType) throws Exception {
-        if(ticket.getTicketStatus() == TicketStatus.NOT_CLAIMED) {
+    private String getTicketStatusMessage(AuctionBid bid) {
+        if(bid.getTicketStatus() == TicketStatus.NOT_WINNING) {
+            return "Oops ! Sorry , This is not Winning Ticket Number";
+        } else if(bid.getTicketStatus() == TicketStatus.CLAIMED_AS_SELL ) {
+            return "This Ticket is already Claimed as Sell";
+        }
+        else if(bid.getTicketStatus() == TicketStatus.CLAIMED_AS_DELIVERY) {
+            return "This Ticket is already Claimed as Delivery";
+        }
+        else {
+            return bid.getTicketStatus().toString();
+        }
+    }
+
+    private String processClaimTicket(AuctionBid ticket, int value, User dealer, User sundryUser,
+                                      AuctionWinner winner, String claimType) throws Exception {
+        if (ticket.getTicketStatus() == TicketStatus.NOT_CLAIMED) {
             if(value > 0) {
                 double valueOfTicket = value * winner.getAuctionLotSize();
-
                 if(claimType == "Sell") {
                     userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
-                            -1*valueOfTicket, true, "Auction Ticket Claim",
+                            -1*valueOfTicket, true,
+                            "Auction Ticket Claim",
                             TransactionType.SELL_CLAIM);
+
                     userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                             valueOfTicket, true,
                             "Auction Ticket Claim", TransactionType.SELL_CLAIM);
+
                     ticket.setTicketStatus(TicketStatus.CLAIMED_AS_SELL);
                     ticket.setDealerId(dealer.getId());
                     auctionBidRepository.save(ticket);
+
                     return "Ticket is winning and " + valueOfTicket + " amount credited to your account";
                 }
                 else if(claimType == "Delivery") {
-                     User admin = Optional.ofNullable(userService.getAdmin()).map(list -> list.get(0)).orElse(null);
+                     User admin = Optional.ofNullable(userService.getAdmin()).map(list -> list.get(0))
+                             .orElse(null);
                      Optional.ofNullable(admin).orElseThrow(() -> {
                          new Exception("Admin User Not Defined");
                          return null;
@@ -228,37 +248,31 @@ public class SdsAuctionDelegate {
                         userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                                 -1*sellValue, true,
                                 "Auction Ticket Delivery", TransactionType.DELIVERY);
+
                         userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
-                                -1*valueOfTicket, true, "Auction Ticket Claim",
+                                -1*valueOfTicket, true,
+                                "Auction Ticket Claim",
                                 TransactionType.DELIVERY);
+
                         userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
                                 sellValue+valueOfTicket, true,
                                 "Auction Ticket Delivery", TransactionType.DELIVERY);
+
                         ticket.setDealerId(dealer.getId());
                         auctionBidRepository.save(ticket);
-                        return "Ticket is winning and you selected claim for delivery,so" + sellValue + " amount debited from your account";
+                        return "Ticket is winning and you selected claim for delivery, so" + sellValue +
+                                " amount debited from your account";
                     }
                 }
-
-
-
-                //check sell
-
-
-
-            }
-            else {
+        } else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
                 auctionBidRepository.save(ticket);
-                return "Opps ! Sorry , This is not Winning Ticket Number";
+                return "Oops ! Sorry , This is not Winning Ticket Number";
             }
-
+        } else {
+            return getTicketStatusMessage(ticket);
         }
-        else {
-            //return proper ticket status
-        }
-
-        return claimType;
+        return null;
     }
 
 
