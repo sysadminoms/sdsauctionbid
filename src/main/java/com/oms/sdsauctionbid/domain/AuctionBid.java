@@ -155,4 +155,52 @@ public class AuctionBid {
                 + Optional.ofNullable(this.bidNineDown).orElse(0)
                 + Optional.ofNullable(this.bidTenDown).orElse(0);
     }
+
+    public int calculateWinningBidExist(String winningPercentage) {
+        switch (winningPercentage) {
+            case "U1":
+                return Optional.ofNullable(this.bidOneUp).orElse(0);
+            case "U2":
+                return Optional.ofNullable(this.bidTwoUp).orElse(0);
+            case "U3":
+                return Optional.ofNullable(this.bidThreeUp).orElse(0);
+            case "U4":
+                return Optional.ofNullable(this.bidFourUp).orElse(0);
+            case "U5":
+                return Optional.ofNullable(this.bidFiveUp).orElse(0);
+            case "U6":
+                return Optional.ofNullable(this.bidSixUp).orElse(0);
+            case "U7":
+                return Optional.ofNullable(this.bidSevenUp).orElse(0);
+            case "U8":
+                return Optional.ofNullable(this.bidEightUp).orElse(0);
+            case "U9":
+                return Optional.ofNullable(this.bidNineUp).orElse(0);
+            case "U10":
+                return Optional.ofNullable(this.bidTenUp).orElse(0);
+            case "D1":
+                return Optional.ofNullable(this.bidOneDown).orElse(0);
+            case "D2":
+                return Optional.ofNullable(this.bidTwoDown).orElse(0);
+            case "D3":
+                return Optional.ofNullable(this.bidThreeDown).orElse(0);
+            case "D4":
+                return Optional.ofNullable(this.bidFourDown).orElse(0);
+            case "D5":
+                return Optional.ofNullable(this.bidFiveDown).orElse(0);
+            case "D6":
+                return Optional.ofNullable(this.bidSixDown).orElse(0);
+            case "D7":
+                return Optional.ofNullable(this.bidSevenDown).orElse(0);
+            case "D8":
+                return Optional.ofNullable(this.bidEightDown).orElse(0);
+            case "D9":
+                return Optional.ofNullable(this.bidNineDown).orElse(0);
+            case "D10":
+                return Optional.ofNullable(this.bidTenDown).orElse(0);
+
+        }
+        return 0;
+    }
+
 }

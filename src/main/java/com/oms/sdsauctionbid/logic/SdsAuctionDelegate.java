@@ -2,13 +2,13 @@ package com.oms.sdsauctionbid.logic;
 
 import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.domain.response.AllBidsResponse;
-import com.oms.sdsauctionbid.domain.response.BidResponse;
 import com.oms.sdsauctionbid.domain.response.EachBidResponse;
 import com.oms.sdsauctionbid.repository.*;
 import com.oms.sdsauctionbid.service.UserAccountTransactionService;
 import com.oms.sdsauctionbid.service.UserCommissionService;
 import com.oms.sdsauctionbid.service.UserService;
 import com.oms.sdsauctionbid.utils.TicketStatus;
+import com.oms.sdsauctionbid.utils.TransactionType;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -157,4 +157,65 @@ public class SdsAuctionDelegate {
         eachBidResponse.setProductName(prod.getProductName());
         return eachBidResponse;
     }
+
+
+    public void claimTicket(Long bidId, String type, User dealerId) throws Exception {
+        AuctionBid winningBid;
+        if(type == "Sell" || type == "Claim") {
+            User sundryUser = userRepository.getUserByUserId("SUNDRY");
+            Optional<AuctionBid> auctionBid = auctionBidRepository.findById(bidId);
+           if(auctionBid.isEmpty()) {
+               throw new Exception("Auction Bid is not present for the id provided");
+           } else {
+               winningBid = auctionBid.get();
+           }
+            Optional.ofNullable(sundryUser).map(user -> {
+                Optional.ofNullable(winningBid).map(bid -> {
+                    if(bid.getTicketStatus() != TicketStatus.NOT_CLAIMED) {
+                        return bid.getTicketStatus();
+                    }
+                    AuctionWinner winner = auctionWinnerRepository
+                            .getAuctionWinners(bid.getAuction().getAuctionID(),
+                                    bid.getProduct().getProductId());
+
+                    if(bid.calculateWinningBidExist(winner.getAuctionWinningPercentage()) > 0) {
+
+                    }
+                })
+
+
+            }).orElse(
+                    throw new Exception("Sundry User is not present");
+        }
+        else {
+            throw new Exception("Please provide if you want to Sell your ticket or Claim it");
+        }
+    }
+
+    private void processClaimTicket(AuctionBid ticket, int value, User dealer, User sundryUser, AuctionWinner winner, String claimType) {
+        if(ticket.getTicketStatus() == TicketStatus.NOT_CLAIMED) {
+            if(value > 0) {
+                double valueOfTicket = value * winner.getAuctionLotSize();
+                //process fro Sundry
+                //check sell
+                userAccountTransactionService.processAccountTransactionForUser(sundryUser,
+                        ticket.getBidId(), value*winner.getWinningLotSize(), true,
+                        "Auction Brokerage", TransactionType.BROKERAGE);
+                ticket.setTicketStatus(TicketStatus.CLAIMED_AS_SELL);
+
+            }
+            else {
+                ticket.setTicketStatus(TicketStatus.NOT_WINNING);
+                auctionBidRepository.save(ticket);
+                //return value
+            }
+
+        }
+        else {
+            //return proper ticket status
+        }
+
+    }
+
+
 }

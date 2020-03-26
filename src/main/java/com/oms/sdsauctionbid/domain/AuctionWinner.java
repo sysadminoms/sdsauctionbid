@@ -44,9 +44,9 @@ public class AuctionWinner {
     @Column(name="winning_lot_size")
     private Integer WinningLotSize;
 
-    @Column(name="winning_person")
-    private String winningPerson;
+    @Column(name="open_price")
+    private Double openPrice;
 
-    @Column(name="Epoch_DateTime_Of_Winning_Bid")
+    @Column(name="epoch_dateTime_of_winning_bid")
     public Long epochDateTimeOfWinningBid;
 }
