@@ -128,7 +128,7 @@ public class AuctionBid {
 
     @Column(name="ticket_status")
     @Enumerated(EnumType.STRING)
-    private com.sds.sdsauctionmanagement.utils.TicketStatus ticketStatus;
+    private TicketStatus ticketStatus;
 
     public int calculateTotalUpCount() {
         return Optional.ofNullable(this.bidOneUp).orElse(0)
