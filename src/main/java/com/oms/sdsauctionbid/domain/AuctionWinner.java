@@ -38,6 +38,9 @@ public class AuctionWinner {
     @Column(name="total_lots")
     private Integer totalLots;
 
+    @Column(name="auction_lot_size")
+    private Integer auctionLotSize;
+
     @Column(name="winning_lot_size")
     private Integer WinningLotSize;
 
