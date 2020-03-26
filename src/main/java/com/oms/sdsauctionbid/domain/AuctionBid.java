@@ -42,9 +42,6 @@ public class AuctionBid {
     @Column(name="bid_date_time")
     private String bidDateTime;
 
-    @Column(name="dealer_id")
-    private User dealerId;
-
     @Column(name="claim_status")
     private Boolean claimStatus;
 
@@ -125,6 +122,9 @@ public class AuctionBid {
 
     @Column(name="total_count_down")
     private int totalCountDown;
+
+    @Column(name="dealer_id")
+    private String dealerId;
 
     @Column(name="ticket_status")
     @Enumerated(EnumType.STRING)
