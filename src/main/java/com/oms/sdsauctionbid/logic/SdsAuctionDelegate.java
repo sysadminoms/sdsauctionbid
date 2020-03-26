@@ -172,6 +172,9 @@ public class SdsAuctionDelegate {
             Optional.ofNullable(sundryUser).map(user -> {
                 Optional.ofNullable(winningBid).map(bid -> {
                     if(bid.getTicketStatus() != TicketStatus.NOT_CLAIMED) {
+                        if(bid.getTicketStatus() == TicketStatus.NOT_WINNING) {
+                            return "Opps ! Sorry , This is not Winning Ticket Number";
+                        }
                         return bid.getTicketStatus();
                     }
                     AuctionWinner winner = auctionWinnerRepository
@@ -192,22 +195,37 @@ public class SdsAuctionDelegate {
         }
     }
 
-    private void processClaimTicket(AuctionBid ticket, int value, User dealer, User sundryUser, AuctionWinner winner, String claimType) {
+    private String processClaimTicket(AuctionBid ticket, int value, User dealer, User sundryUser, AuctionWinner winner, String claimType) {
         if(ticket.getTicketStatus() == TicketStatus.NOT_CLAIMED) {
             if(value > 0) {
                 double valueOfTicket = value * winner.getAuctionLotSize();
-                //process fro Sundry
+                userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
+                        -1*valueOfTicket, true, "Auction Ticket Claim",
+                        TransactionType.SELL_CLAIM);
+                if(claimType == "Sell") {
+                    userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
+                            valueOfTicket, true,
+                            "Auction Ticket Claim", TransactionType.SELL_CLAIM);
+                    ticket.setTicketStatus(TicketStatus.CLAIMED_AS_SELL);
+                    ticket.setDealerId(dealer.getId());
+                    auctionBidRepository.save(ticket);
+                    return "Ticket is winning and " + valueOfTicket + " amount credited to your account";
+                }
+                else if(claimType == "Delivery") {
+
+                }
+
+
+
                 //check sell
-                userAccountTransactionService.processAccountTransactionForUser(sundryUser,
-                        ticket.getBidId(), value*winner.getWinningLotSize(), true,
-                        "Auction Brokerage", TransactionType.BROKERAGE);
-                ticket.setTicketStatus(TicketStatus.CLAIMED_AS_SELL);
+
+
 
             }
             else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
                 auctionBidRepository.save(ticket);
-                //return value
+                return "Opps ! Sorry , This is not Winning Ticket Number";
             }
 
         }
@@ -215,6 +233,7 @@ public class SdsAuctionDelegate {
             //return proper ticket status
         }
 
+        return claimType;
     }
 
 
