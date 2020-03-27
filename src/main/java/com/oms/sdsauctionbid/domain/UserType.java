@@ -38,9 +38,7 @@ public class UserType {
         @NotBlank
         private Boolean status = false;
 
-        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-        @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-        @JoinColumn(name = "Id")
+        @OneToMany(mappedBy="Id")
         private List<User> users = new ArrayList<>();
 
 }
