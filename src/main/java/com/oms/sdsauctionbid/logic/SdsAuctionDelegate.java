@@ -178,9 +178,14 @@ public class SdsAuctionDelegate {
                     AuctionWinner winner = auctionWinnerRepository
                             .getAuctionWinners(winningBid.getAuction().getAuctionID(),
                                     winningBid.getProduct().getProductId());
-                    return processClaimTicket(winningBid,
-                            winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage()),
-                            dealer, sundryUser, winner, type);
+                    if(winner != null) {
+                        return processClaimTicket(winningBid,
+                                winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage()),
+                                dealer, sundryUser, winner, type);
+                    }
+                    else {
+                        throw new Exception("Auction Winner not yet declared");
+                    }
                     }
                 else {
                     throw new Exception("Bid not valid");
