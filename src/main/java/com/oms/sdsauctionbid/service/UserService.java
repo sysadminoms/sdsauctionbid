@@ -182,7 +182,7 @@ public class UserService implements UserDetailsService {
 
     public List<User> getAdmin() {
         UserType superAdmin = userTypeService.getUserTypeByName(UserTypeName.SUPER_ADMIN.toString());
-        return Optional.ofNullable(superAdmin.getUsers()).orElse(null);
+        return userRepository.getUsersByUserType(superAdmin.getUserTypeId());
     }
 
     public String changeUserStatus(String id, boolean status) {

@@ -257,6 +257,7 @@ public class SdsAuctionDelegate {
                                 "Auction Ticket Delivery", TransactionType.DELIVERY);
 
                         ticket.setDealerId(dealer.getId());
+                        ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
                         auctionBidRepository.save(ticket);
                         return "Ticket is winning and you selected claim for delivery, so" + sellValue +
                                 " amount debited from your account";
