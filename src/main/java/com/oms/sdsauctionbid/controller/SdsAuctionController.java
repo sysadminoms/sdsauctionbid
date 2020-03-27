@@ -39,7 +39,8 @@ public class SdsAuctionController {
         String username = userDetails.getUsername();
         User userFromToken = userService.getUserDetailsByUserId(username);
         try {
-            return new ResponseEntity<BidResponse>(new BidResponse(0, sdsAuctionDelegate.submitAuctionBid(bids, userFromToken)), OK);
+            return new ResponseEntity<BidResponse>(new BidResponse(0,
+                    sdsAuctionDelegate.submitAuctionBid(bids, userFromToken)), OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -71,6 +72,21 @@ public class SdsAuctionController {
         try {
             return new ResponseEntity<>(new CustomMessageResponse(Double.toString(sdsAccountDelegate
                     .getUserAccountBalance(userId)), 0), OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
+                    , -1), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/claimTicket")
+    public ResponseEntity<?> claimTicket(@RequestParam String bidId, @RequestParam String sellOrDelivery) {
+        try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
+                    .getPrincipal();
+            String username = userDetails.getUsername();
+            User dealer = userService.getUserDetailsByUserId(username);
+            return new ResponseEntity<>(new CustomMessageResponse(sdsAuctionDelegate.claimTicket(bidId,
+                    sellOrDelivery, dealer), 0), OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);

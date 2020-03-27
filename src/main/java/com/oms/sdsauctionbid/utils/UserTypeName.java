@@ -9,5 +9,6 @@ public enum UserTypeName {
     SUB_DISTRIBUTORS_BUSINESS_DEVELOPERS,
     DEALERS,
     TRADERS,
-    MOBILE_TRADERS
+    MOBILE_TRADERS,
+    SUNDRY
     }

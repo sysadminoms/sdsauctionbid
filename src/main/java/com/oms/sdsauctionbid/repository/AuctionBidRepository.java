@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface AuctionBidRepository extends JpaRepository<AuctionBid, Long> {
+public interface AuctionBidRepository extends JpaRepository<AuctionBid, String> {
 
     @Query(value = "select * from sds_auction_bid where auction_id = ? and id = ? and product_id = ?", nativeQuery = true)
     AuctionBid getAuctionBid(Long auctionId, String userId, Long productId);

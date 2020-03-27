@@ -4,6 +4,7 @@ package com.oms.sdsauctionbid.service;
 import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
 import com.oms.sdsauctionbid.repository.UserRepository;
+import com.oms.sdsauctionbid.utils.UserTypeName;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 public class UserService implements UserDetailsService {
     private UserRepository userRepository;
     private AccountTransactionRepository accountTransactionRepository;
-
+    private UserTypeService userTypeService;
     private static final Logger LOG = LoggerFactory.getLogger(User.class);
 
     private static Timestamp timestamp;
@@ -47,9 +48,10 @@ public class UserService implements UserDetailsService {
                 .orElse(Double.parseDouble("0"));
     }
 
-    public UserService(UserRepository userRepository, AccountTransactionRepository accountTransactionRepository) {
+    public UserService(UserRepository userRepository, AccountTransactionRepository accountTransactionRepository, UserTypeService userTypeService) {
         this.userRepository = userRepository;
         this.accountTransactionRepository = accountTransactionRepository;
+        this.userTypeService = userTypeService;
     }
 
     public User getUserDetailsById(String id) {
@@ -176,6 +178,11 @@ public class UserService implements UserDetailsService {
         LOG.info("In UserService class to Delete User Details");
         userRepository.deleteById(id);
 
+    }
+
+    public List<User> getAdmin() {
+        UserType superAdmin = userTypeService.getUserTypeByName(UserTypeName.SUPER_ADMIN.toString());
+        return userRepository.getUsersByUserType(superAdmin.getUserTypeId());
     }
 
     public String changeUserStatus(String id, boolean status) {
