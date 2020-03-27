@@ -39,7 +39,8 @@ public class SdsAuctionController {
         String username = userDetails.getUsername();
         User userFromToken = userService.getUserDetailsByUserId(username);
         try {
-            return new ResponseEntity<BidResponse>(new BidResponse(0, sdsAuctionDelegate.submitAuctionBid(bids, userFromToken)), OK);
+            return new ResponseEntity<BidResponse>(new BidResponse(0,
+                    sdsAuctionDelegate.submitAuctionBid(bids, userFromToken)), OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -78,7 +79,7 @@ public class SdsAuctionController {
     }
 
     @GetMapping(value = "/claimTicket")
-    public ResponseEntity<?> claimTicket(@RequestParam Long bidId, @RequestParam String sellOrDelivery) {
+    public ResponseEntity<?> claimTicket(@RequestParam String bidId, @RequestParam String sellOrDelivery) {
         try {
             UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
                     .getPrincipal();

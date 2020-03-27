@@ -198,7 +198,6 @@ public class AuctionBid {
                 return Optional.ofNullable(this.bidNineDown).orElse(0);
             case "D10":
                 return Optional.ofNullable(this.bidTenDown).orElse(0);
-
         }
         return 0;
     }

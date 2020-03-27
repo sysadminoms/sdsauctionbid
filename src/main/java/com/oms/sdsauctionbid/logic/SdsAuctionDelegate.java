@@ -160,9 +160,9 @@ public class SdsAuctionDelegate {
     }
 
 
-    public String claimTicket(Long bidId, String type, User dealer) throws Exception {
+    public String claimTicket(String bidId, String type, User dealer) throws Exception {
         AuctionBid winningBid;
-        if(type == "Sell" || type == "Claim") {
+        if("Sell".equalsIgnoreCase(type) || "Delivery".equalsIgnoreCase(type)) {
             User sundryUser = userRepository.getUserByUserId("SUNDRY");
             Optional<AuctionBid> auctionBid = auctionBidRepository.findById(bidId);
             if (auctionBid.isPresent()) {
@@ -178,10 +178,9 @@ public class SdsAuctionDelegate {
                     AuctionWinner winner = auctionWinnerRepository
                             .getAuctionWinners(winningBid.getAuction().getAuctionID(),
                                     winningBid.getProduct().getProductId());
-                    int winBidValue = winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage());
-                    if (winBidValue > 0) {
-                            return processClaimTicket(winningBid, winBidValue, dealer, sundryUser, winner, type);
-                        }
+                    return processClaimTicket(winningBid,
+                            winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage()),
+                            dealer, sundryUser, winner, type);
                     }
                 else {
                     throw new Exception("Bid not valid");
@@ -194,7 +193,6 @@ public class SdsAuctionDelegate {
         else {
             throw new Exception("Please provide if you want to Sell your ticket or Claim it");
         }
-        return null;
     }
 
     private String getTicketStatusMessage(AuctionBid bid) {
@@ -216,7 +214,7 @@ public class SdsAuctionDelegate {
         if (ticket.getTicketStatus() == TicketStatus.NOT_CLAIMED) {
             if(value > 0) {
                 double valueOfTicket = value * winner.getAuctionLotSize();
-                if(claimType == "Sell") {
+                if("Sell".equalsIgnoreCase(claimType)) {
                     userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
                             -1*valueOfTicket, true,
                             "Auction Ticket Claim",
@@ -232,7 +230,7 @@ public class SdsAuctionDelegate {
 
                     return "Ticket is winning and " + valueOfTicket + " amount credited to your account";
                 }
-                else if(claimType == "Delivery") {
+                else if("Delivery".equalsIgnoreCase(claimType)) {
                      User admin = Optional.ofNullable(userService.getAdmin()).map(list -> list.get(0))
                              .orElse(null);
                      Optional.ofNullable(admin).orElseThrow(() -> {
