@@ -242,31 +242,7 @@ public class SdsAuctionDelegate {
                          new Exception("Admin User Not Defined");
                          return null;
                      });
-                     double sellValue = value * winner.getOpenPrice() - valueOfTicket;
-                    Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
-                            .orElse(Double.parseDouble("0"));
-                    if ((userBalance - sellValue) < 0) {
-                        throw new Exception("Balance is Low, please increase balance");
-                    }else{
-                        userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
-                                -1*sellValue, true,
-                                "Auction Ticket Delivery", TransactionType.DELIVERY);
-
-                        userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
-                                -1*valueOfTicket, true,
-                                "Auction Ticket Claim",
-                                TransactionType.DELIVERY);
-
-                        userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
-                                sellValue+valueOfTicket, true,
-                                "Auction Ticket Delivery", TransactionType.DELIVERY);
-
-                        ticket.setDealerId(dealer.getId());
-                        ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
-                        auctionBidRepository.save(ticket);
-                        return "Ticket is winning and you selected claim for delivery, so " + sellValue +
-                                " amount debited from your account";
-                    }
+                    return processDelivery(ticket, value, dealer, sundryUser, winner, valueOfTicket, admin);
                 }
         } else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
@@ -279,5 +255,58 @@ public class SdsAuctionDelegate {
         return null;
     }
 
+    private String processDelivery(AuctionBid ticket, int value, User dealer, User sundryUser,
+                                   AuctionWinner winner, double valueOfTicket, User admin) throws Exception {
+
+        Double productPrice = updatedPriceOfProduct(winner.getOpenPrice(), winner.getAuctionWinningPercentage());
+        double sellValue = value * productPrice;
+        Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
+                .orElse(Double.parseDouble("0"));
+        if ((userBalance - sellValue) < 0) {
+            throw new Exception("Balance is Low, please increase balance");
+        } else {
+
+
+
+
+
+
+
+            userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
+                    -1*sellValue, true,
+                    "Auction Ticket Delivery", TransactionType.DELIVERY);
+
+            userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
+                    -1*valueOfTicket, true,
+                    "Auction Ticket Claim",
+                    TransactionType.DELIVERY);
+
+            userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
+                    sellValue+valueOfTicket, true,
+                    "Auction Ticket Delivery", TransactionType.DELIVERY);
+
+            ticket.setDealerId(dealer.getId());
+            ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
+            auctionBidRepository.save(ticket);
+            return "Ticket is winning and you selected claim for delivery, so " + sellValue +
+                    " amount debited from your account";
+        }
+    }
+
+    private double calculateShippingCharge(User user) {
+
+    }
+
+    private double updatedPriceOfProduct(Double productPrice, String winner){
+            if("U".equalsIgnoreCase(winner.substring(0,1))){
+                int percentage = Integer.parseInt(winner.substring(1));
+                 return productPrice*(100+percentage)/100;
+            }
+            else if("D".equalsIgnoreCase(winner.substring(0,1))){
+                int percentage = Integer.parseInt(winner.substring(1));
+                return productPrice*(100-percentage)/100;
+            }
+            return productPrice;
+    }
 
 }
