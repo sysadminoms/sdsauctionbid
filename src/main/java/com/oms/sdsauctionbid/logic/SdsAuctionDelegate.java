@@ -283,7 +283,7 @@ public class SdsAuctionDelegate {
                         TransactionType.DELIVERY);
 
                 userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
-                        -1*forwardValue*winner.getAuctionLotSize().doubleValue(), true,
+                        forwardValue*winner.getAuctionLotSize().doubleValue(), true,
                         "Auction Ticket Delivery Extra", TransactionType.DELIVERY);
 
             }
