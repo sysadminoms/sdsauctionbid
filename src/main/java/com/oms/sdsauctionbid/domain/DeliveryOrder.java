@@ -28,7 +28,7 @@ public class DeliveryOrder {
     private Long productId;
 
     @Column(name = "quantity")
-    private Long quantity;
+    private Double quantity;
 
     @Column(name = "shipping_charges")
     private double shippingCharges;
@@ -45,6 +45,12 @@ public class DeliveryOrder {
 
     @Column(name = "shipping_address")
     private String shippingAddress;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "state")
+    private String state;
 
     @Column(name = "courier_partner_name")
     private String courierPartnerName;
