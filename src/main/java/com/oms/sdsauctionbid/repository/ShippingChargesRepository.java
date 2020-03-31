@@ -8,9 +8,9 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
 public interface ShippingChargesRepository extends CrudRepository<ShippingCharges, Long> {
-    @Query(value = "SELECT SHIPPING_CHARGES.price,SHIPPING_CHARGES.type\n" +
+    @Query(value = "SELECT SHIPPING_CHARGES.price,SHIPPING_CHARGES.price_type\n" +
             "FROM sds_shipping_charges AS SHIPPING_CHARGES\n" +
             "LEFT JOIN sds_state AS STATE\n" +
-            "ON STATE.id = SHIPPING_CHARGES.state_id where STATE.state_name=?",nativeQuery = true)
-    List<Object[]> findByStateIdAndType(String stateName);
+            "ON STATE.id = SHIPPING_CHARGES.state_id where STATE.state_name=? and SHIPPING_CHARGES.type = ?",nativeQuery = true)
+    List<Object[]> findByStateIdAndType(String stateName, String type);
 }

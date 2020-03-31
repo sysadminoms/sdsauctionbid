@@ -247,7 +247,8 @@ public class SdsAuctionDelegate {
                          new Exception("Admin User Not Defined");
                          return null;
                      });
-                    return processDelivery(ticket, value, dealer, sundryUser, winner, valueOfTicket, admin);
+                    return processDelivery(ticket, value, dealer, sundryUser, winner, valueOfTicket, admin,
+                            false);
                 }
         } else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
@@ -261,15 +262,26 @@ public class SdsAuctionDelegate {
     }
 
     private String processDelivery(AuctionBid ticket, int value, User dealer, User sundryUser,
-                                   AuctionWinner winner, double valueOfTicket, User admin) throws Exception {
+                                   AuctionWinner winner, double valueOfTicket, User admin, boolean onlyDelivery)
+            throws Exception {
         int forwardValue = 0;
         Double productPrice = updatedPriceOfProduct(winner.getOpenPrice(), winner.getAuctionWinningPercentage());
-        if(value > 3 ){
+        if(value > 3 && onlyDelivery ){
             forwardValue = value-3;
             value = 3;
-                    }
-        double shippingCharge = calculateShippingCharge(dealer, value);
-        double sellValue = value * productPrice/winner.getAuctionLotSize()+shippingCharge;
+
+        }
+        double shippingCharge = 0;
+        double sellValue = 0;
+        if(onlyDelivery) {
+            //save for Auction Winner minimum price and set price
+            sellValue = value * productPrice/winner.getAuctionLotSize()+shippingCharge;
+        }
+        else {
+            shippingCharge = calculateShippingCharge(dealer, value);
+            sellValue = value * productPrice + shippingCharge;
+        }
+
         double creditValue = forwardValue*winner.getAuctionLotSize();
         Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
                 .orElse(Double.parseDouble("0"));
@@ -322,11 +334,11 @@ public class SdsAuctionDelegate {
     }
 
     private double calculateShippingCharge(User user,Integer lots) {
-        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState());
+        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState(), "DELIVERY");
         if(shippingRollCharges != null && shippingRollCharges.size() > 0){
               Object[] obj = shippingRollCharges.get(0);
              double price = Optional.ofNullable(obj).map(val -> Double.valueOf(val[0].toString())).orElse(0.0);
-              if("roll".equalsIgnoreCase(Optional.ofNullable(obj[1]).map(val -> val.toString()).orElse(null))){
+              if("PER ITEM".equalsIgnoreCase(Optional.ofNullable(obj[1]).map(val -> val.toString()).orElse(null))){
                   price = lots*price;
               }
                 return price;
