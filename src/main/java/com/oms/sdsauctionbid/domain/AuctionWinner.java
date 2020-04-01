@@ -47,6 +47,9 @@ public class AuctionWinner {
     @Column(name="open_price")
     private Double openPrice;
 
+    @Column(name="minimum_price")
+    private Double minimumPrice;
+
     @Column(name="epoch_dateTime_of_winning_bid")
     public Long epochDateTimeOfWinningBid;
 }

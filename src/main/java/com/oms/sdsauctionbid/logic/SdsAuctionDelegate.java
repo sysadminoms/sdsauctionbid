@@ -32,6 +32,8 @@ public class SdsAuctionDelegate {
     AuctionBidRepository auctionBidRepository;
     AuctionSettingsRepository auctionSettingsRepository;
     AuctionWinnerRepository auctionWinnerRepository;
+    ShippingChargesRepository shippingChargesRepository;
+    DeliveryOrderRepository deliveryOrderRepository;
     UserRepository userRepository;
     UserService userService;
     UserCommissionService userCommissionService;
@@ -45,7 +47,8 @@ public class SdsAuctionDelegate {
                               UserRepository userRepository,
                               UserService userService,
                               UserCommissionService userCommissionService,
-                              UserAccountTransactionService userAccountTransactionService) {
+                              UserAccountTransactionService userAccountTransactionService,
+                              ShippingChargesRepository shippingChargesRepository,DeliveryOrderRepository deliveryOrderRepository) {
         this.auctionRepository = auctionRepository;
         this.productRepository = productRepository;
         this.auctionBidRepository = auctionBidRepository;
@@ -55,6 +58,8 @@ public class SdsAuctionDelegate {
         this.userService = userService;
         this.userCommissionService = userCommissionService;
         this.userAccountTransactionService = userAccountTransactionService;
+        this.shippingChargesRepository = shippingChargesRepository;
+        this.deliveryOrderRepository = deliveryOrderRepository;
     }
 
     public AllBidsResponse submitAuctionBid(Bids bids, User dealer) throws Exception {
@@ -242,31 +247,8 @@ public class SdsAuctionDelegate {
                          new Exception("Admin User Not Defined");
                          return null;
                      });
-                     double sellValue = value * winner.getOpenPrice() - valueOfTicket;
-                    Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
-                            .orElse(Double.parseDouble("0"));
-                    if ((userBalance - sellValue) < 0) {
-                        throw new Exception("Balance is Low, please increase balance");
-                    }else{
-                        userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
-                                -1*sellValue, true,
-                                "Auction Ticket Delivery", TransactionType.DELIVERY);
-
-                        userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
-                                -1*valueOfTicket, true,
-                                "Auction Ticket Claim",
-                                TransactionType.DELIVERY);
-
-                        userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
-                                sellValue+valueOfTicket, true,
-                                "Auction Ticket Delivery", TransactionType.DELIVERY);
-
-                        ticket.setDealerId(dealer.getId());
-                        ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
-                        auctionBidRepository.save(ticket);
-                        return "Ticket is winning and you selected claim for delivery, so " + sellValue +
-                                " amount debited from your account";
-                    }
+                    return processDelivery(ticket, value, dealer, sundryUser, winner, valueOfTicket, admin,
+                            false);
                 }
         } else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
@@ -279,5 +261,103 @@ public class SdsAuctionDelegate {
         return null;
     }
 
+    private String processDelivery(AuctionBid ticket, int value, User dealer, User sundryUser,
+                                   AuctionWinner winner, double valueOfTicket, User admin, boolean onlyDelivery)
+            throws Exception {
+        int forwardValue = 0;
+        Double productPrice = updatedPriceOfProduct(winner.getOpenPrice(), winner.getAuctionWinningPercentage());
+        if(value > 3 && onlyDelivery ){
+            forwardValue = value-3;
+            value = 3;
+
+        }
+        double shippingCharge = 0;
+        double sellValue = 0;
+        if(onlyDelivery) {
+            //save for Auction Winner minimum price and set price
+            productPrice = winner.getMinimumPrice();
+            sellValue = value * productPrice/winner.getAuctionLotSize()+shippingCharge;
+        }
+        else {
+            shippingCharge = calculateShippingCharge(dealer, value);
+            sellValue = value * productPrice + shippingCharge;
+        }
+
+        double creditValue = forwardValue*winner.getAuctionLotSize();
+        Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
+                .orElse(Double.parseDouble("0"));
+        if ((userBalance + creditValue - sellValue) < 0) {
+            throw new Exception("Balance is Low, please increase balance");
+        } else {
+            if(forwardValue > 0){
+                userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
+                        -1*forwardValue*winner.getAuctionLotSize().doubleValue(), true,
+                        "Auction Ticket Delivery Extra",
+                        TransactionType.DELIVERY);
+
+                userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
+                        forwardValue*winner.getAuctionLotSize().doubleValue(), true,
+                        "Auction Ticket Delivery Extra", TransactionType.DELIVERY);
+
+            }
+            userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
+                    -1*sellValue, true,
+                    "Auction Ticket Delivery", TransactionType.DELIVERY);
+
+
+            userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
+                    sellValue, true,
+                    "Auction Ticket Delivery", TransactionType.DELIVERY);
+            populateShippingRecord(dealer,ticket.getBidId(),productPrice,winner.getProduct().getProductId(), (double) value,shippingCharge);
+            ticket.setDealerId(dealer.getId());
+            ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
+            auctionBidRepository.save(ticket);
+            return "Ticket is winning and you selected claim for delivery, so delivery order has been created" ;
+        }
+    }
+
+    private void populateShippingRecord(User user,String bidId,Double price,Long productId,Double quantity,Double shippingCharges){
+       DeliveryOrder deliveryOrder = new DeliveryOrder();
+       deliveryOrder.setBidId(bidId);
+       deliveryOrder.setUserId(user.getId());
+       deliveryOrder.setEpochCreationDateTime(Instant.now().toEpochMilli());
+        DateTime dateTime = new DateTime(); // Initializes with the current date and time
+        DateTimeFormatter customFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+       deliveryOrder.setOrderDateTime(customFormatter.print(dateTime));
+       deliveryOrder.setPrice(price);
+       deliveryOrder.setShippingAddress(user.getAddress());
+       deliveryOrder.setProductId(productId);
+       deliveryOrder.setQuantity(quantity);
+       deliveryOrder.setShippingCharges(shippingCharges);
+       deliveryOrder.setState(user.getState());
+       deliveryOrder.setCity(user.getCity());
+       deliveryOrderRepository.save(deliveryOrder);
+    }
+
+    private double calculateShippingCharge(User user,Integer lots) {
+        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState(), "DELIVERY");
+        if(shippingRollCharges != null && shippingRollCharges.size() > 0){
+              Object[] obj = shippingRollCharges.get(0);
+             double price = Optional.ofNullable(obj).map(val -> Double.valueOf(val[0].toString())).orElse(0.0);
+              if("PER ITEM".equalsIgnoreCase(Optional.ofNullable(obj[1]).map(val -> val.toString()).orElse(null))){
+                  price = lots*price;
+              }
+                return price;
+            }
+
+       return 0.0;
+    }
+
+    private double updatedPriceOfProduct(Double productPrice, String winner){
+            if("U".equalsIgnoreCase(winner.substring(0,1))){
+                int percentage = Integer.parseInt(winner.substring(1));
+                 return productPrice*(100+percentage)/100;
+            }
+            else if("D".equalsIgnoreCase(winner.substring(0,1))){
+                int percentage = Integer.parseInt(winner.substring(1));
+                return productPrice*(100-percentage)/100;
+            }
+            return productPrice;
+    }
 
 }
