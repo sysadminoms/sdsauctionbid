@@ -275,6 +275,7 @@ public class SdsAuctionDelegate {
         double sellValue = 0;
         if(onlyDelivery) {
             //save for Auction Winner minimum price and set price
+            productPrice = winner.getMinimumPrice();
             sellValue = value * productPrice/winner.getAuctionLotSize()+shippingCharge;
         }
         else {
