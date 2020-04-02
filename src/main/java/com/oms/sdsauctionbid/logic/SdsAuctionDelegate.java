@@ -184,9 +184,15 @@ public class SdsAuctionDelegate {
                             .getAuctionWinners(winningBid.getAuction().getAuctionID(),
                                     winningBid.getProduct().getProductId());
                     if(winner != null) {
-                        return processClaimTicket(winningBid,
-                                winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage()),
-                                dealer, sundryUser, winner, type);
+                        if("Sell".equalsIgnoreCase(type) && winner.getDeliveryOnlyAuction()) {
+                            throw new Exception("This ticket was for a delivery only auction and cannot be " +
+                                    "claimed as Sell");
+                        }
+                        else {
+                            return processClaimTicket(winningBid,
+                                    winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage()),
+                                    dealer, sundryUser, winner, type);
+                        }
                     }
                     else {
                         throw new Exception("Auction Winner not yet declared");
@@ -248,7 +254,7 @@ public class SdsAuctionDelegate {
                          return null;
                      });
                     return processDelivery(ticket, value, dealer, sundryUser, winner, valueOfTicket, admin,
-                            false);
+                            winner.getDeliveryOnlyAuction());
                 }
         } else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
@@ -308,7 +314,8 @@ public class SdsAuctionDelegate {
             userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
                     sellValue, true,
                     "Auction Ticket Delivery", TransactionType.DELIVERY);
-            populateShippingRecord(dealer,ticket.getBidId(),productPrice,winner.getProduct().getProductId(), (double) value,shippingCharge);
+            populateShippingRecord(dealer,ticket.getBidId(),productPrice,winner.getProduct().getProductId(),
+                    (double) value, shippingCharge);
             ticket.setDealerId(dealer.getId());
             ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
             auctionBidRepository.save(ticket);
