@@ -148,14 +148,16 @@ public class SdsAuctionDelegate {
 
 
         auctionBidRepository.save(auctionBid);
+        double tdsPercentage = Optional.ofNullable(auctionSettings.getTdsPercentage()).orElse(0.0);
         userAccountTransactionService.processAccountTransactionForUser(dealer, auctionBid.getBidId(),
                 ((double) (-1*(auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
                         Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0))), true,
-                "Commission", BROKERAGE);
+                "Commission", BROKERAGE, 0.0);
 
-        userCommissionService.assignUserCommissionForOneTransaction(getCommissionMapForUser, auctionBid.getBidId(),
+        userCommissionService.assignUserCommissionForOneTransactionWithTDSPercentageForAllTransactions
+                (getCommissionMapForUser, auctionBid.getBidId(),
                 (double) ((auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
-                        Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)));
+                        Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)), tdsPercentage);
 
         EachBidResponse eachBidResponse = new EachBidResponse();
         eachBidResponse.setBarCode(auctionBid.getBidId());
@@ -234,11 +236,11 @@ public class SdsAuctionDelegate {
                     userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
                             -1*valueOfTicket, true,
                             "Auction Ticket Claim",
-                            TransactionType.SELL_CLAIM);
+                            TransactionType.SELL_CLAIM, 0.0);
 
                     userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                             valueOfTicket, true,
-                            "Auction Ticket Claim", TransactionType.SELL_CLAIM);
+                            "Auction Ticket Claim", TransactionType.SELL_CLAIM, 0.0);
 
                     ticket.setTicketStatus(TicketStatus.CLAIMED_AS_SELL);
                     ticket.setDealerId(dealer.getId());
@@ -299,21 +301,21 @@ public class SdsAuctionDelegate {
                 userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
                         -1*forwardValue*winner.getAuctionLotSize().doubleValue(), true,
                         "Auction Ticket Delivery Extra",
-                        TransactionType.DELIVERY);
+                        TransactionType.DELIVERY, 0.0);
 
                 userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                         forwardValue*winner.getAuctionLotSize().doubleValue(), true,
-                        "Auction Ticket Delivery Extra", TransactionType.DELIVERY);
+                        "Auction Ticket Delivery Extra", TransactionType.DELIVERY, 0.0);
 
             }
             userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                     -1*sellValue, true,
-                    "Auction Ticket Delivery", TransactionType.DELIVERY);
+                    "Auction Ticket Delivery", TransactionType.DELIVERY, 0.0);
 
 
             userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
                     sellValue, true,
-                    "Auction Ticket Delivery", TransactionType.DELIVERY);
+                    "Auction Ticket Delivery", TransactionType.DELIVERY, 0.0);
             populateShippingRecord(dealer,ticket.getBidId(),productPrice,winner.getProduct().getProductId(),
                     (double) value, shippingCharge);
             ticket.setDealerId(dealer.getId());
@@ -323,7 +325,8 @@ public class SdsAuctionDelegate {
         }
     }
 
-    private void populateShippingRecord(User user,String bidId,Double price,Long productId,Double quantity,Double shippingCharges){
+    private void populateShippingRecord(User user,String bidId,Double price,Long productId,Double quantity,
+                                        Double shippingCharges){
        DeliveryOrder deliveryOrder = new DeliveryOrder();
        deliveryOrder.setBidId(bidId);
        deliveryOrder.setUserId(user.getId());
@@ -342,7 +345,8 @@ public class SdsAuctionDelegate {
     }
 
     private double calculateShippingCharge(User user,Integer lots) {
-        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState(), "DELIVERY");
+        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState()
+                , "DELIVERY");
         if(shippingRollCharges != null && shippingRollCharges.size() > 0){
               Object[] obj = shippingRollCharges.get(0);
              double price = Optional.ofNullable(obj).map(val -> Double.valueOf(val[0].toString())).orElse(0.0);

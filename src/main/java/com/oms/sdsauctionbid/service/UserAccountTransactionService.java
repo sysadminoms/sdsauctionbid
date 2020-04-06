@@ -16,14 +16,15 @@ import java.util.Optional;
 @Service
 public class UserAccountTransactionService {
 
-        private AccountTransactionRepository accountTransactionRepository;
+    private AccountTransactionRepository accountTransactionRepository;
 
     public UserAccountTransactionService(AccountTransactionRepository accountTransactionRepository) {
         this.accountTransactionRepository = accountTransactionRepository;
     }
 
     public void processAccountTransactionForUser(User user, String transactionId, Double transactionAmount,
-                                                 Boolean transactionStatus, String transactionDetails, TransactionType transactionType) {
+                                                 Boolean transactionStatus, String transactionDetails,
+                                                 TransactionType transactionType, Double tdsPayable) {
         UserAccountTransaction userAccountTransaction = new UserAccountTransaction();
         userAccountTransaction.setUser(user);
         DateTime dateTime = new DateTime(); // Initializes with the current date and time
@@ -34,14 +35,16 @@ public class UserAccountTransactionService {
         userAccountTransaction.setTransactionAmount(transactionAmount);
         userAccountTransaction.setTransactionStatus(transactionStatus);
         userAccountTransaction.setTransactionDetails(transactionDetails);
+        userAccountTransaction.setTdsPayable(tdsPayable);
         Double balance = Optional.ofNullable(accountTransactionRepository
                 .getAvailableBalance(user.getId())).orElse(0.0);
         userAccountTransaction.setRunningBalance(balance);
         balance = balance + transactionAmount;
-        userAccountTransaction.setAvailableBalance(round(balance,2));
+        userAccountTransaction.setAvailableBalance(round(balance, 2));
         userAccountTransaction.setTransactionType(transactionType);
         accountTransactionRepository.save(userAccountTransaction);
     }
 }
+
 
 
