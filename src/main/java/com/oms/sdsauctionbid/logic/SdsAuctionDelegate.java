@@ -64,13 +64,16 @@ public class SdsAuctionDelegate {
 
     public AllBidsResponse submitAuctionBid(Bids bids, User dealer) throws Exception {
 
-        User trader = this.userRepository.findById(bids.getTraderId()).get();
-       Optional.ofNullable(trader)
-                        .orElseThrow(() -> {
-                            new Exception("Trader id is not valid");
-                            return null;
-                        });
+        Optional<User> userOptional = this.userRepository.findById(bids.getTraderId());
+        User trader = null;
         Optional<Auction> optionalAuction = this.auctionRepository.findById(bids.getAuctionId());
+
+        if (userOptional.isPresent()) {
+            trader = userOptional.get();
+        } else {
+            throw new Exception("Trader does not exist.");
+        }
+
        Auction auction =  Optional.ofNullable(optionalAuction).map(auc -> {if(!auc.get().getCurrentlyActive()) {
             throw new RuntimeException("Auction has Ended");}
         return auc.get();
@@ -92,10 +95,10 @@ public class SdsAuctionDelegate {
         Map<Integer, User> getCommissionMapForUser = userService
                 .getCommissionMapForUser(dealer, (int)(auctionSettings.getCommission() * 100));
 
-
+        User traderFinal = trader;
         List<EachBidResponse> bidList =  bids.getBids().stream().map(bid -> {
             try {
-                return this.processBid(bid, trader, auction, dealer, getCommissionMapForUser, auctionSettings);
+                return this.processBid(bid, traderFinal, auction, dealer, getCommissionMapForUser, auctionSettings);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
@@ -148,14 +151,16 @@ public class SdsAuctionDelegate {
 
 
         auctionBidRepository.save(auctionBid);
+        double tdsPercentage = Optional.ofNullable(auctionSettings.getTdsPercentage()).orElse(0.0);
         userAccountTransactionService.processAccountTransactionForUser(dealer, auctionBid.getBidId(),
                 ((double) (-1*(auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
                         Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0))), true,
-                "Commission", BROKERAGE);
+                "Commission", BROKERAGE, 0.0);
 
-        userCommissionService.assignUserCommissionForOneTransaction(getCommissionMapForUser, auctionBid.getBidId(),
+        userCommissionService.assignUserCommissionForOneTransactionWithTDSPercentageForAllTransactions
+                (getCommissionMapForUser, auctionBid.getBidId(),
                 (double) ((auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
-                        Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)));
+                        Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)), tdsPercentage);
 
         EachBidResponse eachBidResponse = new EachBidResponse();
         eachBidResponse.setBarCode(auctionBid.getBidId());
@@ -184,9 +189,15 @@ public class SdsAuctionDelegate {
                             .getAuctionWinners(winningBid.getAuction().getAuctionID(),
                                     winningBid.getProduct().getProductId());
                     if(winner != null) {
-                        return processClaimTicket(winningBid,
-                                winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage()),
-                                dealer, sundryUser, winner, type);
+                        if("Sell".equalsIgnoreCase(type) && winner.getDeliveryOnlyAuction()) {
+                            throw new Exception("This ticket was for a delivery only auction and cannot be " +
+                                    "claimed as Sell");
+                        }
+                        else {
+                            return processClaimTicket(winningBid,
+                                    winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage()),
+                                    dealer, sundryUser, winner, type);
+                        }
                     }
                     else {
                         throw new Exception("Auction Winner not yet declared");
@@ -228,11 +239,11 @@ public class SdsAuctionDelegate {
                     userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
                             -1*valueOfTicket, true,
                             "Auction Ticket Claim",
-                            TransactionType.SELL_CLAIM);
+                            TransactionType.SELL_CLAIM, 0.0);
 
                     userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                             valueOfTicket, true,
-                            "Auction Ticket Claim", TransactionType.SELL_CLAIM);
+                            "Auction Ticket Claim", TransactionType.SELL_CLAIM, 0.0);
 
                     ticket.setTicketStatus(TicketStatus.CLAIMED_AS_SELL);
                     ticket.setDealerId(dealer.getId());
@@ -248,7 +259,7 @@ public class SdsAuctionDelegate {
                          return null;
                      });
                     return processDelivery(ticket, value, dealer, sundryUser, winner, valueOfTicket, admin,
-                            false);
+                            winner.getDeliveryOnlyAuction());
                 }
         } else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
@@ -293,22 +304,23 @@ public class SdsAuctionDelegate {
                 userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
                         -1*forwardValue*winner.getAuctionLotSize().doubleValue(), true,
                         "Auction Ticket Delivery Extra",
-                        TransactionType.DELIVERY);
+                        TransactionType.DELIVERY, 0.0);
 
                 userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                         forwardValue*winner.getAuctionLotSize().doubleValue(), true,
-                        "Auction Ticket Delivery Extra", TransactionType.DELIVERY);
+                        "Auction Ticket Delivery Extra", TransactionType.DELIVERY, 0.0);
 
             }
             userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
                     -1*sellValue, true,
-                    "Auction Ticket Delivery", TransactionType.DELIVERY);
+                    "Auction Ticket Delivery", TransactionType.DELIVERY, 0.0);
 
 
             userAccountTransactionService.processAccountTransactionForUser(admin, ticket.getBidId(),
                     sellValue, true,
-                    "Auction Ticket Delivery", TransactionType.DELIVERY);
-            populateShippingRecord(dealer,ticket.getBidId(),productPrice,winner.getProduct().getProductId(), (double) value,shippingCharge);
+                    "Auction Ticket Delivery", TransactionType.DELIVERY, 0.0);
+            populateShippingRecord(dealer,ticket.getBidId(),productPrice,winner.getProduct().getProductId(),
+                    (double) value, shippingCharge);
             ticket.setDealerId(dealer.getId());
             ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
             auctionBidRepository.save(ticket);
@@ -316,7 +328,8 @@ public class SdsAuctionDelegate {
         }
     }
 
-    private void populateShippingRecord(User user,String bidId,Double price,Long productId,Double quantity,Double shippingCharges){
+    private void populateShippingRecord(User user,String bidId,Double price,Long productId,Double quantity,
+                                        Double shippingCharges){
        DeliveryOrder deliveryOrder = new DeliveryOrder();
        deliveryOrder.setBidId(bidId);
        deliveryOrder.setUserId(user.getId());
@@ -335,7 +348,8 @@ public class SdsAuctionDelegate {
     }
 
     private double calculateShippingCharge(User user,Integer lots) {
-        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState(), "DELIVERY");
+        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState()
+                , "DELIVERY");
         if(shippingRollCharges != null && shippingRollCharges.size() > 0){
               Object[] obj = shippingRollCharges.get(0);
              double price = Optional.ofNullable(obj).map(val -> Double.valueOf(val[0].toString())).orElse(0.0);

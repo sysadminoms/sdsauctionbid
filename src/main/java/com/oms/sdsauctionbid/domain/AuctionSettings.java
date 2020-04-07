@@ -52,6 +52,9 @@ public class AuctionSettings {
     @Column(name="commission")
     private Double commission;
 
+    @Column(name="tds_percentage")
+    private Double tdsPercentage;
+
     @Column(name="status")
     private boolean status;
 

@@ -51,4 +51,7 @@ public class UserAccountTransaction {
 
     @Column(name="transaction_status")
     private Boolean transactionStatus;
+
+    @Column(name="tds_payable")
+    private double tdsPayable;
 }

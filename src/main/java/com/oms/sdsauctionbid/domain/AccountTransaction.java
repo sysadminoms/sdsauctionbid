@@ -21,4 +21,6 @@ public class AccountTransaction {
     private TransactionType transactionType;
 
     private Boolean transactionStatus;
+
+    private Double tdsPercentage;
 }

@@ -14,6 +14,6 @@ public interface AccountTransactionRepository extends JpaRepository<UserAccountT
     Double getAvailableBalance(String  userId);
 
     @Query(value = "select id, transaction_amount, " +
-            "transaction_type from sds_user_account_transaction where transaction_id = ?", nativeQuery = true)
+            "transaction_type, tds_payable from sds_user_account_transaction where transaction_id = ?", nativeQuery = true)
     List<?> getTransactionsForBid(String  bidId);
 }

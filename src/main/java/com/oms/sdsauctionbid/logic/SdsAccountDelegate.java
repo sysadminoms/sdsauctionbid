@@ -40,7 +40,8 @@ public class SdsAccountDelegate {
                });
        userAccountTransactionService.processAccountTransactionForUser(user, accountTransaction.getTransactionId(),
                accountTransaction.getTransactionAmount(), accountTransaction.getTransactionStatus(),
-               accountTransaction.getTransactionDetail(), accountTransaction.getTransactionType());
+               accountTransaction.getTransactionDetail(), accountTransaction.getTransactionType(),
+               accountTransaction.getTdsPercentage());
        return "Success";
     }
 

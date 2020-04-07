@@ -52,4 +52,7 @@ public class AuctionWinner {
 
     @Column(name="epoch_dateTime_of_winning_bid")
     public Long epochDateTimeOfWinningBid;
+
+    @Column(name="delivery_only_auction")
+    private Boolean deliveryOnlyAuction;
 }
