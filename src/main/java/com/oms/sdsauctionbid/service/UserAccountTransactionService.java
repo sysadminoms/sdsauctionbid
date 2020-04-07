@@ -32,7 +32,7 @@ public class UserAccountTransactionService {
         userAccountTransaction.setTransactionDateTime(customFormatter.print(dateTime));
         userAccountTransaction.setTransactionEpochTime(Instant.now().toEpochMilli());
         userAccountTransaction.setTransactionId(transactionId);
-        userAccountTransaction.setTransactionAmount(transactionAmount);
+        userAccountTransaction.setTransactionAmount(round(transactionAmount, 2));
         userAccountTransaction.setTransactionStatus(transactionStatus);
         userAccountTransaction.setTransactionDetails(transactionDetails);
         userAccountTransaction.setTdsPayable(round(tdsPayable, 6));
