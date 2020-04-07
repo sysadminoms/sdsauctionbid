@@ -64,13 +64,16 @@ public class SdsAuctionDelegate {
 
     public AllBidsResponse submitAuctionBid(Bids bids, User dealer) throws Exception {
 
-        User trader = this.userRepository.findById(bids.getTraderId()).get();
-       Optional.ofNullable(trader)
-                        .orElseThrow(() -> {
-                            new Exception("Trader id is not valid");
-                            return null;
-                        });
+        Optional<User> userOptional = this.userRepository.findById(bids.getTraderId());
+        User trader = null;
         Optional<Auction> optionalAuction = this.auctionRepository.findById(bids.getAuctionId());
+
+        if (userOptional.isPresent()) {
+            trader = userOptional.get();
+        } else {
+            throw new Exception("Trader does not exist.");
+        }
+
        Auction auction =  Optional.ofNullable(optionalAuction).map(auc -> {if(!auc.get().getCurrentlyActive()) {
             throw new RuntimeException("Auction has Ended");}
         return auc.get();
@@ -92,10 +95,10 @@ public class SdsAuctionDelegate {
         Map<Integer, User> getCommissionMapForUser = userService
                 .getCommissionMapForUser(dealer, (int)(auctionSettings.getCommission() * 100));
 
-
+        User traderFinal = trader;
         List<EachBidResponse> bidList =  bids.getBids().stream().map(bid -> {
             try {
-                return this.processBid(bid, trader, auction, dealer, getCommissionMapForUser, auctionSettings);
+                return this.processBid(bid, traderFinal, auction, dealer, getCommissionMapForUser, auctionSettings);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }

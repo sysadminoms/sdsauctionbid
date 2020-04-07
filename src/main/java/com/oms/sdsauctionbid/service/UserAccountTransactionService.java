@@ -35,7 +35,7 @@ public class UserAccountTransactionService {
         userAccountTransaction.setTransactionAmount(transactionAmount);
         userAccountTransaction.setTransactionStatus(transactionStatus);
         userAccountTransaction.setTransactionDetails(transactionDetails);
-        userAccountTransaction.setTdsPayable(tdsPayable);
+        userAccountTransaction.setTdsPayable(round(tdsPayable, 6));
         Double balance = Optional.ofNullable(accountTransactionRepository
                 .getAvailableBalance(user.getId())).orElse(0.0);
         userAccountTransaction.setRunningBalance(balance);
