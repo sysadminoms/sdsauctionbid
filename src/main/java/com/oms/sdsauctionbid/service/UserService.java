@@ -197,17 +197,17 @@ public class UserService implements UserDetailsService {
             return "NOT_FOUND";
     }
 
-    public Map<Integer, User> getCommissionMapForUser(User user,Integer totalCommissionPercentage) {
-        Map<Integer,User> commissionUserMap = new HashMap<>();
+    public Map<String, User> getCommissionMapForUser(User user,Integer totalCommissionPercentage) {
+        Map<String,User> commissionUserMap = new HashMap<>();
         int commission;
         while (user != null) {
             if(Optional.ofNullable(user).map(User::getParent).map(User::getId).orElse(null) ==  user.getId()) {
-                commissionUserMap.put(totalCommissionPercentage,user);
+                commissionUserMap.put(totalCommissionPercentage+"#"+user.getId(),user);
                 user = null;
             }
             else {
                 commission = Optional.ofNullable(user.getUserCommissionPercentage()).orElse(0);
-                commissionUserMap.put(commission,user);
+                commissionUserMap.put(commission+"#"+user.getId(),user);
                 totalCommissionPercentage = totalCommissionPercentage - commission;
                 user = user.getParent();
             }

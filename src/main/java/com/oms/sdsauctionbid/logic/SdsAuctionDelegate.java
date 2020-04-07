@@ -92,7 +92,7 @@ public class SdsAuctionDelegate {
         if ((userBalance - noOfBids * Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)) < 0) {
             throw new Exception("Balance is Low, please increase balance");
         }
-        Map<Integer, User> getCommissionMapForUser = userService
+        Map<String, User> getCommissionMapForUser = userService
                 .getCommissionMapForUser(dealer, (int)(auctionSettings.getCommission() * 100));
 
         User traderFinal = trader;
@@ -109,7 +109,7 @@ public class SdsAuctionDelegate {
     }
 
     private EachBidResponse processBid(Bid bid, User user, Auction auction, User dealer,
-                                       Map<Integer, User> getCommissionMapForUser, AuctionSettings auctionSettings)
+                                       Map<String, User> getCommissionMapForUser, AuctionSettings auctionSettings)
             throws Exception {
             Optional<Product> product = auction.getProducts().stream().filter(prod -> prod.getProductId()
                     == bid.getProductId()).findFirst();

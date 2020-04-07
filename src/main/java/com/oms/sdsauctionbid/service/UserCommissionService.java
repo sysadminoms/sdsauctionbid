@@ -37,11 +37,11 @@ public class UserCommissionService {
     }
 
     public void assignUserCommissionForOneTransactionWithTDSPercentageForAllTransactions
-            (Map<Integer, User> userCommissionMap, String transactionId,
+            (Map<String, User> userCommissionMap, String transactionId,
                                                       Double transactionAmount, double tdsPayablePercentage) {
         userCommissionMap.forEach((commissionPercentage, user) -> {
             assignOneUserCommissionForOneTransactionWithTDSPercentageForAllTransactions(user, transactionId,
-                    transactionAmount, commissionPercentage,
+                    transactionAmount, commissionPercentage.split("#")[0],
                     tdsPayablePercentage);
         });
     }
@@ -55,8 +55,8 @@ public class UserCommissionService {
 
     private void assignOneUserCommissionForOneTransactionWithTDSPercentageForAllTransactions
             (User user, String transactionId, double transactionAmount,
-                                                          Integer commissionPercentage, double tdsPayable) {
-        double transAmountForUserTransaction = (transactionAmount * commissionPercentage)/100;
+                                                          String commissionPercentage, double tdsPayable) {
+        double transAmountForUserTransaction = (transactionAmount * Integer.parseInt(commissionPercentage))/100;
         userAccountTransactionService.processAccountTransactionForUser(user, transactionId,
                 transAmountForUserTransaction * (100-tdsPayable)/100
                 , true,
