@@ -80,9 +80,9 @@ public class SdsAuctionDelegate {
         })
             .orElseThrow(() -> new Exception("Auction Not Found or has ended"));
 
-        AuctionSettings auctionSettings = this.auctionSettingsRepository.getFirstAuctionSettingRecord();
+   /*     AuctionSettings auctionSettings = this.auctionSettingsRepository.getFirstAuctionSettingRecord();
         Optional.ofNullable(auctionSettings)
-                .orElseThrow(() -> new Exception("Auction Settings Not Found"));
+                .orElseThrow(() -> new Exception("Auction Settings Not Found"));*/
 
         Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
                 .orElse(Double.parseDouble("0"));
@@ -98,7 +98,7 @@ public class SdsAuctionDelegate {
         User traderFinal = trader;
         List<EachBidResponse> bidList =  bids.getBids().stream().map(bid -> {
             try {
-                return this.processBid(bid, traderFinal, auction, dealer, getCommissionMapForUser, auctionSettings);
+                return this.processBid(bid, traderFinal, auction, dealer, getCommissionMapForUser);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
@@ -109,7 +109,7 @@ public class SdsAuctionDelegate {
     }
 
     private EachBidResponse processBid(Bid bid, User user, Auction auction, User dealer,
-                                       Map<String, User> getCommissionMapForUser, AuctionSettings auctionSettings)
+                                       Map<String, User> getCommissionMapForUser)
             throws Exception {
             Optional<Product> product = auction.getProducts().stream().filter(prod -> prod.getProductId()
                     == bid.getProductId()).findFirst();
@@ -151,7 +151,7 @@ public class SdsAuctionDelegate {
 
 
         auctionBidRepository.save(auctionBid);
-        double tdsPercentage = Optional.ofNullable(auctionSettings.getTdsPercentage()).orElse(0.0);
+        double tdsPercentage = Optional.ofNullable(auction.getTdsPercentage()).orElse(0.0);
         userAccountTransactionService.processAccountTransactionForUser(dealer, auctionBid.getBidId(),
                 ((double) (-1*(auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
                         Optional.ofNullable(auction.getBidAmount()).orElse(0))), true,
