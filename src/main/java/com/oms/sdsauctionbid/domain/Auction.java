@@ -67,4 +67,7 @@ public class Auction {
 
     @Column(name="commission")
     private Double commission;
+
+    @Column(name="tds_percentage")
+    private Double tdsPercentage;
 }
