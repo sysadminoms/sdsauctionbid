@@ -59,8 +59,12 @@ public class Auction {
     @JoinColumn(name = "winnerID")
     private Set<AuctionWinner> auctionWinners;
 
+    @Column(name="auction_lot_size")
+    private Integer auctionLotSize;
 
+    @Column(name="bid_amount")
+    private Integer bidAmount;
 
-
-
+    @Column(name="commission")
+    private Double commission;
 }

@@ -89,11 +89,11 @@ public class SdsAuctionDelegate {
 
         int noOfBids = bids.getBids().stream().collect(Collectors.summingInt(Bid::getTotalBids));
 
-        if ((userBalance - noOfBids * Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)) < 0) {
+        if ((userBalance - noOfBids * Optional.ofNullable(auction.getBidAmount()).orElse(0)) < 0) {
             throw new Exception("Balance is Low, please increase balance");
         }
         Map<String, User> getCommissionMapForUser = userService
-                .getCommissionMapForUser(dealer, (int)(auctionSettings.getCommission() * 100));
+                .getCommissionMapForUser(dealer, (int)(auction.getCommission() * 100));
 
         User traderFinal = trader;
         List<EachBidResponse> bidList =  bids.getBids().stream().map(bid -> {
@@ -154,13 +154,13 @@ public class SdsAuctionDelegate {
         double tdsPercentage = Optional.ofNullable(auctionSettings.getTdsPercentage()).orElse(0.0);
         userAccountTransactionService.processAccountTransactionForUser(dealer, auctionBid.getBidId(),
                 ((double) (-1*(auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
-                        Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0))), true,
+                        Optional.ofNullable(auction.getBidAmount()).orElse(0))), true,
                 "Commission", BROKERAGE, 0.0);
 
         userCommissionService.assignUserCommissionForOneTransactionWithTDSPercentageForAllTransactions
                 (getCommissionMapForUser, auctionBid.getBidId(),
                 (double) ((auctionBid.calculateTotalDownCount()+auctionBid.calculateTotalUpCount())*
-                        Optional.ofNullable(auctionSettings.getBidAmount()).orElse(0)), tdsPercentage);
+                        Optional.ofNullable(auction.getBidAmount()).orElse(0)), tdsPercentage);
 
         EachBidResponse eachBidResponse = new EachBidResponse();
         eachBidResponse.setBarCode(auctionBid.getBidId());
