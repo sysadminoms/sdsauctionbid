@@ -74,4 +74,7 @@ public class Auction {
     @Column(name="max_auction_win_amount_per_lot")
     private Double maxAuctionWinAmountPerLot;
 
+    @Column(name="min_balance")
+    private Double minBalance;
+
 }
