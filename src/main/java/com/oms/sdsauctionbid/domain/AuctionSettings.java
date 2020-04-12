@@ -50,7 +50,7 @@ public class AuctionSettings {
     private String minAccountBalanceDay;
 
     @Column(name="min_account_balance_amount")
-    private Integer minAccountBalanceAmount;
+    private Double minAccountBalanceAmount;
 
     @Column(name="last_updated_by")
     private String lastUpdatedBy;
