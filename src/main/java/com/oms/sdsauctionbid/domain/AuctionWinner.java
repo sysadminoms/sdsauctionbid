@@ -55,4 +55,8 @@ public class AuctionWinner {
 
     @Column(name="delivery_only_auction")
     private Boolean deliveryOnlyAuction;
+
+    @Column(name="max_auction_win_amount_per_lot")
+    private Double maxAuctionWinAmountPerLot;
+
 }

@@ -22,6 +22,9 @@ public class AuctionSettings {
     @Column(name="auction_days")
     private String auctionDays;
 
+    @Column(name="delivery_only_auction_time")
+    private String deliveryOnlyAuctionTime;
+
     @Column(name="auction_start_time")
     private String auctionStartTime;
 
@@ -40,6 +43,15 @@ public class AuctionSettings {
     @Column(name="auction_brokerage")
     private Integer auctionBrokerage;
 
+    @Column(name="delivery_only_max_lot")
+    private Integer deliveryOnlyMaxLot;
+
+    @Column(name="min_account_balance_day")
+    private String minAccountBalanceDay;
+
+    @Column(name="min_account_balance_amount")
+    private Integer minAccountBalanceAmount;
+
     @Column(name="last_updated_by")
     private String lastUpdatedBy;
 
@@ -54,6 +66,15 @@ public class AuctionSettings {
 
     @Column(name="tds_percentage")
     private Double tdsPercentage;
+
+    @Column(name="mobile_auction_duration_time")
+    private String mobileAuctionDurationTime;
+
+    @Column(name="desktop_auction_duration_time")
+    private String desktopAuctionDurationTime;
+
+    @Column(name="disable_scheduled_auction")
+    private boolean disableScheduledAuction;
 
     @Column(name="status")
     private boolean status;

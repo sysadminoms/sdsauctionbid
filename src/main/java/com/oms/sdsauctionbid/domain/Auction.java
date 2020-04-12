@@ -70,4 +70,8 @@ public class Auction {
 
     @Column(name="tds_percentage")
     private Double tdsPercentage;
+
+    @Column(name="max_auction_win_amount_per_lot")
+    private Double maxAuctionWinAmountPerLot;
+
 }
