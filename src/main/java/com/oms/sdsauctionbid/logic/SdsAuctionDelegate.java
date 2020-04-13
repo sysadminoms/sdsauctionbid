@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -89,7 +90,8 @@ public class SdsAuctionDelegate {
 
         int noOfBids = bids.getBids().stream().collect(Collectors.summingInt(Bid::getTotalBids));
 
-        if ((userBalance - noOfBids * Optional.ofNullable(auction.getBidAmount()).orElse(0)) < 0) {
+        if ((userBalance - Optional.ofNullable(auction.getMinBalance()).orElse(0.0)
+                - noOfBids * Optional.ofNullable(auction.getBidAmount()).orElse(0)) < 0) {
             throw new Exception("Balance is Low, please increase balance");
         }
         Map<String, User> getCommissionMapForUser = userService
@@ -234,7 +236,7 @@ public class SdsAuctionDelegate {
                                       AuctionWinner winner, String claimType) throws Exception {
         if (ticket.getTicketStatus() == TicketStatus.NOT_CLAIMED) {
             if(value > 0) {
-                double valueOfTicket = value * winner.getAuctionLotSize();
+                double valueOfTicket = value * winner.getMaxAuctionWinAmountPerLot();
                 if("Sell".equalsIgnoreCase(claimType)) {
                     userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
                             -1*valueOfTicket, true,
@@ -259,7 +261,7 @@ public class SdsAuctionDelegate {
                          return null;
                      });
                     return processDelivery(ticket, value, dealer, sundryUser, winner, valueOfTicket, admin,
-                            winner.getDeliveryOnlyAuction());
+                            Optional.ofNullable(winner.getDeliveryOnlyAuction()).orElse(false));
                 }
         } else {
                 ticket.setTicketStatus(TicketStatus.NOT_WINNING);
@@ -276,10 +278,14 @@ public class SdsAuctionDelegate {
                                    AuctionWinner winner, double valueOfTicket, User admin, boolean onlyDelivery)
             throws Exception {
         int forwardValue = 0;
+        AuctionSettings auctionSettings = this.auctionSettingsRepository.getFirstAuctionSettingRecord();
+        Optional.ofNullable(auctionSettings)
+                .orElseThrow(() -> new Exception("Auction Settings Not Found"));
         Double productPrice = updatedPriceOfProduct(winner.getOpenPrice(), winner.getAuctionWinningPercentage());
-        if(value > 3 && onlyDelivery ){
-            forwardValue = value-3;
-            value = 3;
+        Integer deliveryLot = Optional.ofNullable(auctionSettings.getDeliveryOnlyMaxLot()).orElse(3);
+        if(value > deliveryLot && onlyDelivery ){
+            forwardValue = value-deliveryLot;
+            value = deliveryLot;
 
         }
         double shippingCharge = 0;
@@ -294,20 +300,28 @@ public class SdsAuctionDelegate {
             sellValue = value * productPrice + shippingCharge;
         }
 
-        double creditValue = forwardValue*winner.getAuctionLotSize();
+        double creditValue = forwardValue*winner.getMaxAuctionWinAmountPerLot();
+
         Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
                 .orElse(Double.parseDouble("0"));
-        if ((userBalance + creditValue - sellValue) < 0) {
+        Double minBalance = 0.0;
+        if(LocalDate.now().getDayOfWeek().name()
+                .equalsIgnoreCase(Optional.ofNullable(auctionSettings.getMinAccountBalanceDay())
+                        .orElse(""))) {
+            minBalance = Optional.ofNullable(auctionSettings
+                    .getMinAccountBalanceAmount()).orElse(0.0);
+        }
+        if ((userBalance + creditValue - sellValue - minBalance) < 0) {
             throw new Exception("Balance is Low, please increase balance");
         } else {
             if(forwardValue > 0){
                 userAccountTransactionService.processAccountTransactionForUser(sundryUser, ticket.getBidId(),
-                        -1*forwardValue*winner.getAuctionLotSize().doubleValue(), true,
+                        -1*forwardValue*winner.getMaxAuctionWinAmountPerLot().doubleValue(), true,
                         "Auction Ticket Delivery Extra",
                         TransactionType.DELIVERY, 0.0);
 
                 userAccountTransactionService.processAccountTransactionForUser(dealer, ticket.getBidId(),
-                        forwardValue*winner.getAuctionLotSize().doubleValue(), true,
+                        forwardValue*winner.getMaxAuctionWinAmountPerLot().doubleValue(), true,
                         "Auction Ticket Delivery Extra", TransactionType.DELIVERY, 0.0);
 
             }
