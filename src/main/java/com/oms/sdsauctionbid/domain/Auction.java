@@ -35,6 +35,15 @@ public class Auction {
     @Column(name="auction_date")
     private Date auctionDate;
 
+    @Column(name="auction_start_epoch_time")
+    private Long auctionStartEpochTime;
+
+    @Column(name="auction_end_epoch_time")
+    private Long auctionEndEpochTime;
+
+    @Column(name="delivery_only_auction")
+    private Boolean deliveryOnlyAuction;
+
     @Column(name="auction_mode")
     private Boolean auctionMode;  //Mobile or Desktop
 
@@ -48,10 +57,13 @@ public class Auction {
     @Column(name="update_date_time")
     private Date updateDateTime;
 
+    @Column(name="previous_auction_id")
+    private Long previousAuctionId;
+
     @Column(name="currently_active")
     private Boolean currentlyActive; //If the Auction is currently Active
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "productId")
     private Set<Product> products;
 
@@ -62,8 +74,8 @@ public class Auction {
     @Column(name="auction_lot_size")
     private Integer auctionLotSize;
 
-    @Column(name="bid_amount")
-    private Integer bidAmount;
+    @Column(name="auction_brokerage")
+    private Integer auctionBrokerage;
 
     @Column(name="commission")
     private Double commission;
@@ -76,5 +88,4 @@ public class Auction {
 
     @Column(name="min_balance")
     private Double minBalance;
-
 }

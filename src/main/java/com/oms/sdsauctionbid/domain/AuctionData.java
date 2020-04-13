@@ -13,7 +13,14 @@ public class AuctionData {
     private String auctionStartTime;
     private String auctionEndTime;
     private String auctionDate;
+    private Long auctionStartEpochTime;
+    private Long auctionEndEpochTime;
+    private Long auctionServerTime;
+    private Long auctionServerEndTime;
     private List<ProductData> products;
-    private boolean auctionMode;
-    private boolean auctionType;
+    private Boolean auctionMode;
+    private Boolean auctionType;
+    private Boolean deliveryOnlyAuction;
+    private Integer auctionBrokerage;
+    private Double minBalance;
 }
