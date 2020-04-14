@@ -122,6 +122,7 @@ public class SdsAuctionDelegate {
             auctionBid.setUser(user);
             auctionBid.setBidTime(Instant.now().toEpochMilli());
             auctionBid.setProduct(prod);
+            auctionBid.setDealerId(dealer.getId());
             DateTime dateTime = new DateTime(); // Initializes with the current date and time
             DateTimeFormatter customFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 
@@ -248,7 +249,7 @@ public class SdsAuctionDelegate {
                             "Auction Ticket Claim", TransactionType.SELL_CLAIM, 0.0);
 
                     ticket.setTicketStatus(TicketStatus.CLAIMED_AS_SELL);
-                    ticket.setDealerId(dealer.getId());
+                    ticket.setTicketClaimedAtDealerId(dealer.getId());
                     auctionBidRepository.save(ticket);
 
                     return "Ticket is winning and " + valueOfTicket + " amount credited to your account";
@@ -335,7 +336,7 @@ public class SdsAuctionDelegate {
                     "Auction Ticket Delivery", TransactionType.DELIVERY, 0.0);
             populateShippingRecord(dealer,ticket.getBidId(),productPrice,winner.getProduct().getProductId(),
                     (double) value, shippingCharge);
-            ticket.setDealerId(dealer.getId());
+            ticket.setTicketClaimedAtDealerId(dealer.getId());
             ticket.setTicketStatus(TicketStatus.CLAIMED_AS_DELIVERY);
             auctionBidRepository.save(ticket);
             return "Ticket is winning and you selected claim for delivery, so delivery order has been created" ;

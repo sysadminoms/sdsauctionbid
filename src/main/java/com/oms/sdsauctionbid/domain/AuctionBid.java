@@ -126,6 +126,9 @@ public class AuctionBid {
     @Column(name="dealer_id")
     private String dealerId;
 
+    @Column(name = "ticket_claim_dealer_id")
+    private String ticketClaimedAtDealerId;
+
     @Column(name="ticket_status")
     @Enumerated(EnumType.STRING)
     private TicketStatus ticketStatus;
