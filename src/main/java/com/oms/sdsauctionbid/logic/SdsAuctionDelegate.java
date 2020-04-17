@@ -2,6 +2,8 @@ package com.oms.sdsauctionbid.logic;
 
 import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.domain.response.AllBidsResponse;
+import com.oms.sdsauctionbid.domain.response.ClaimTicketAsDeliveryResponse;
+import com.oms.sdsauctionbid.domain.response.DeliveryTicketResponse;
 import com.oms.sdsauctionbid.domain.response.EachBidResponse;
 import com.oms.sdsauctionbid.repository.*;
 import com.oms.sdsauctionbid.service.UserAccountTransactionService;
@@ -171,6 +173,102 @@ public class SdsAuctionDelegate {
         eachBidResponse.setProductName(prod.getProductName());
         return eachBidResponse;
     }
+
+
+    public ClaimTicketAsDeliveryResponse getTicketDetailsForDeliveryClaim(String bidId, User dealer) throws Exception {
+        ClaimTicketAsDeliveryResponse claimTicketAsDeliveryResponse = new ClaimTicketAsDeliveryResponse();
+        claimTicketAsDeliveryResponse.setDeliveryTicketResponse(null);
+        AuctionBid winningBid;
+        Optional<AuctionBid> auctionBid = auctionBidRepository.findById(bidId);
+            if (auctionBid.isPresent()) {
+                winningBid = auctionBid.get();
+            } else {
+                throw new Exception("Auction Bid is not present for the id provided");
+            }
+                if (winningBid != null) {
+                    if (winningBid.getTicketStatus() != TicketStatus.NOT_CLAIMED) {
+                        claimTicketAsDeliveryResponse.setResponse(getTicketStatusMessage(winningBid));
+                        return claimTicketAsDeliveryResponse;
+                    }
+                    AuctionWinner winner = auctionWinnerRepository
+                            .getAuctionWinners(winningBid.getAuction().getAuctionID(),
+                                    winningBid.getProduct().getProductId());
+                    if(winner != null) {
+                        int value = winningBid.calculateWinningBidExist(winner.getAuctionWinningPercentage());
+
+                        if(value > 0) {
+                            double valueOfTicket = value * winner.getMaxAuctionWinAmountPerLot();
+                            AuctionSettings auctionSettings = this.auctionSettingsRepository
+                                    .getFirstAuctionSettingRecord();
+                            Optional.ofNullable(auctionSettings)
+                                    .orElseThrow(() -> new Exception("Auction Settings Not Found"));
+                            Integer deliveryLot = Optional.ofNullable(auctionSettings.getDeliveryOnlyMaxLot())
+                                    .orElse(3);
+                            int forwardValue = 0;
+                            Double productPrice = updatedPriceOfProduct(winner.getOpenPrice(),
+                                    winner.getAuctionWinningPercentage());
+
+                            double shippingCharge = 0;
+                            double sellValue = 0;
+
+                            if(winner.getDeliveryOnlyAuction()) {
+                                if(value > deliveryLot){
+                                    forwardValue = value-deliveryLot;
+                                    value = deliveryLot;
+                                }
+                                productPrice = winner.getMinimumPrice();
+                                sellValue = value * productPrice/winner.getAuctionLotSize()+shippingCharge;
+                            }
+                            else {
+                                shippingCharge = calculateShippingCharge(dealer, value);
+                                sellValue = value * productPrice + shippingCharge;
+                            }
+
+                            double creditValue = forwardValue*winner.getMaxAuctionWinAmountPerLot();
+
+                            Double userBalance = Optional.ofNullable(this.userService.findUserBalance(dealer.getId()))
+                                    .orElse(Double.parseDouble("0"));
+                            Double minBalance = 0.0;
+                            if(LocalDate.now().getDayOfWeek().name()
+                                    .equalsIgnoreCase(Optional.ofNullable(auctionSettings.getMinAccountBalanceDay())
+                                            .orElse(""))) {
+                                minBalance = Optional.ofNullable(auctionSettings
+                                        .getMinAccountBalanceAmount()).orElse(0.0);
+                            }
+
+                           double brokeragePaid = (winningBid.getTotalCountDown()+ winningBid.getTotalCountDown())
+                            * winningBid.getAuction().getAuctionBrokerage();
+
+                            Product product = winner.getProduct();
+                            DeliveryTicketResponse deliveryTicketResponse = new DeliveryTicketResponse(
+                                    product.getImagePath(), product.getProductName(),
+                                    winner.getAuctionWinningPercentage(), productPrice,
+                                    winner.getAuctionLotSize(), winningBid.getBidTime(), value+forwardValue,
+                                    brokeragePaid, userBalance, creditValue - sellValue,
+                                    userBalance + creditValue - sellValue);
+
+                            claimTicketAsDeliveryResponse.setDeliveryTicketResponse(deliveryTicketResponse);
+                            claimTicketAsDeliveryResponse.setResponse("");
+                            return claimTicketAsDeliveryResponse;
+                        }
+                        else {
+                            winningBid.setTicketStatus(TicketStatus.NOT_WINNING);
+                            auctionBidRepository.save(winningBid);
+                            claimTicketAsDeliveryResponse.setResponse("Oops ! Sorry , " +
+                                    "This is not Winning Ticket Number");
+                            return claimTicketAsDeliveryResponse;
+                        }
+                    }
+                    else {
+                        throw new Exception("Auction Winner not yet declared");
+                    }
+                }
+                else {
+                    throw new Exception("Bid not valid");
+                }
+            }
+
+
 
 
     public String claimTicket(String bidId, String type, User dealer) throws Exception {

@@ -4,6 +4,7 @@ package com.oms.sdsauctionbid.controller;
 import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.domain.request.BidIds;
 import com.oms.sdsauctionbid.domain.response.BidResponse;
+import com.oms.sdsauctionbid.domain.response.ClaimTicketAsDeliveryResponse;
 import com.oms.sdsauctionbid.logic.SdsAccountDelegate;
 import com.oms.sdsauctionbid.logic.SdsAuctionDelegate;
 import com.oms.sdsauctionbid.service.UserAccountTransactionService;
@@ -91,6 +92,22 @@ public class SdsAuctionController {
             return new ResponseEntity<>(new CustomMessageResponse(e.getMessage()
                     , -1), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping(value = "/getDeliveryDetailsForTicket")
+    public ResponseEntity<?> deliveryDetailsForTicket(@RequestParam String bidId) {
+        try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication()
+                    .getPrincipal();
+            String username = userDetails.getUsername();
+            User dealer = userService.getUserDetailsByUserId(username);
+            ClaimTicketAsDeliveryResponse claimTicketAsDeliveryResponse =
+                    sdsAuctionDelegate.getTicketDetailsForDeliveryClaim(bidId, dealer);
+            claimTicketAsDeliveryResponse.setStatus(0);
+            return new ResponseEntity<>(claimTicketAsDeliveryResponse, OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ClaimTicketAsDeliveryResponse(e.getMessage(), null,
+                     -1), HttpStatus.INTERNAL_SERVER_ERROR); }
     }
 
     //TODO - ADD LOGGING
