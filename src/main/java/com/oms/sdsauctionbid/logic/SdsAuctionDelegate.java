@@ -245,7 +245,8 @@ public class SdsAuctionDelegate {
                                     winner.getAuctionWinningPercentage(), productPrice,
                                     winner.getAuctionLotSize(), winningBid.getBidTime(), value+forwardValue,
                                     brokeragePaid, userBalance, creditValue - sellValue,
-                                    userBalance + creditValue - sellValue);
+                                    userBalance + creditValue - sellValue,
+                                    value * winner.getAuctionLotSize());
 
                             claimTicketAsDeliveryResponse.setDeliveryTicketResponse(deliveryTicketResponse);
                             claimTicketAsDeliveryResponse.setResponse("");

@@ -20,4 +20,6 @@ public class DeliveryTicketResponse {
    private Double dealerBalance;
    private Double amountPayable;
    private Double netFinalValue;
+   private Integer totalKilograms;
+
 }
