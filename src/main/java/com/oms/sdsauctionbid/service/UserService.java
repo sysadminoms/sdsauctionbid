@@ -89,6 +89,7 @@ public class UserService implements UserDetailsService {
 
     public User createUser(User loggedInUser, JSONObject jsonObject, UserType userType, String encode,
                            FileUploadResponse adhaarUploadResponse,
+
                            FileUploadResponse panUploadResponse,
                            FileUploadResponse gstUploadResponse) {
         LOG.info("In UserService class to Create User Details");
@@ -103,8 +104,8 @@ public class UserService implements UserDetailsService {
         newUser.setMobileNo((String) jsonObject.get("mobileNo"));
         newUser.setAddress((String) jsonObject.get("address"));
         newUser.setVillage((String) jsonObject.get("village"));
-        newUser.setCity((String) jsonObject.get("city"));
-        newUser.setState((String) jsonObject.get("state"));
+//        newUser.setCity((String) jsonObject.get("city"));
+//        newUser.setState((String) jsonObject.get("state"));
         newUser.setZipCode(jsonObject.get("zipCode").toString());
         newUser.setAadharNo(jsonObject.get("aadharNo").toString());
         newUser.setAadharFileName(adhaarUploadResponse.getFileName());
@@ -147,8 +148,8 @@ public class UserService implements UserDetailsService {
         userUpdate.setMobileNo((String) jsonObject.get("mobileNo"));
         userUpdate.setAddress((String) jsonObject.get("address"));
         userUpdate.setVillage((String) jsonObject.get("village"));
-        userUpdate.setCity((String) jsonObject.get("city"));
-        userUpdate.setState((String) jsonObject.get("state"));
+//        userUpdate.setCity((String) jsonObject.get("city"));
+//        userUpdate.setState((String) jsonObject.get("state"));
         userUpdate.setZipCode(jsonObject.get("zipCode").toString());
         userUpdate.setAadharNo(jsonObject.get("aadharNo").toString());
         userUpdate.setAadharFileName(adhaarUploadResponse.getFileName());
@@ -197,23 +198,22 @@ public class UserService implements UserDetailsService {
             return "NOT_FOUND";
     }
 
-    public Map<String, User> getCommissionMapForUser(User user,Integer totalCommissionPercentage) {
-        Map<String,User> commissionUserMap = new HashMap<>();
+    public Map<String, User> getCommissionMapForUser(User user, Integer totalCommissionPercentage) {
+        Map<String, User> commissionUserMap = new HashMap<>();
         int commission;
         while (user != null) {
-            if(Optional.ofNullable(user).map(User::getParent).map(User::getId).orElse(null) ==  user.getId()) {
-                commissionUserMap.put(totalCommissionPercentage+"#"+user.getId(),user);
+            if (Optional.ofNullable(user).map(User::getParent).map(User::getId).orElse(null) == user.getId()) {
+                commissionUserMap.put(totalCommissionPercentage + "#" + user.getId(), user);
                 user = null;
-            }
-            else {
+            } else {
                 commission = Optional.ofNullable(user.getUserCommissionPercentage()).orElse(0);
-                commissionUserMap.put(commission+"#"+user.getId(),user);
+                commissionUserMap.put(commission + "#" + user.getId(), user);
                 totalCommissionPercentage = totalCommissionPercentage - commission;
                 user = user.getParent();
             }
         }
 
-        return  commissionUserMap;
+        return commissionUserMap;
     }
 }
 

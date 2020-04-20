@@ -28,9 +28,6 @@ public class WithdrawalSettings {
     @Column(name = "min_withdrawal_amount")
     private Double minWithdrawalAmount;
 
-    @Column(name = "max_withdrawal_amount")
-    private Double maxWithdrawalAmount;
-
     @Column(name="last_updated_by")
     private String lastUpdatedBy;
 

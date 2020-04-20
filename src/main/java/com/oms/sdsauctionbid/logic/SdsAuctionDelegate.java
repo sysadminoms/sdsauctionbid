@@ -458,13 +458,13 @@ public class SdsAuctionDelegate {
        deliveryOrder.setProductId(productId);
        deliveryOrder.setQuantity(quantity);
        deliveryOrder.setShippingCharges(shippingCharges);
-       deliveryOrder.setState(user.getState());
-       deliveryOrder.setCity(user.getCity());
+       deliveryOrder.setState(user.getState().getStateName());
+       deliveryOrder.setCity(user.getCity().getCityName());
        deliveryOrderRepository.save(deliveryOrder);
     }
 
     private double calculateShippingCharge(User user,Integer lots) {
-        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState()
+        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findByStateIdAndType(user.getState().getStateName()
                 , "DELIVERY");
         if(shippingRollCharges != null && shippingRollCharges.size() > 0){
               Object[] obj = shippingRollCharges.get(0);

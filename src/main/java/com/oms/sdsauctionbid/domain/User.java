@@ -76,11 +76,13 @@ public class User implements Serializable, Identifiable<String> {
     @Column(name="village")
     private String village;
 
-    @Column(name="city")
-    private String city;
+    @JoinColumn(name = "city_id")
+    @ManyToOne
+    private City city;
 
-    @Column(name="state")
-    private String state;
+    @JoinColumn(name = "state_id")
+    @ManyToOne
+    private State state;
 
     @Column(name="zip_code")
     private String zipCode;
@@ -155,7 +157,34 @@ public class User implements Serializable, Identifiable<String> {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Collection<User> children;
 
+    @Transient
+    private String admin;
+
+    @Transient
+    private String adminBusinessDev;
+
+    @Transient
+    private String distributor;
+
+    @Transient
+    private String distributorBusinessDev;
+
+    @Transient
+    private String subDistributor;
+
+    @Transient
+    private String subDistributorBusinessDev;
+
+    @Transient
+    private double currentBalance;
+
     public String getName() {
         return this.firstName + " " + this.secondName + " " + this.lastName;
     }
-}
+
+    public String getBusinessDev() {
+        if (this.businessDeveloper != null) {
+            return this.businessDeveloper.getId();
+        }
+        return "";
+    }}

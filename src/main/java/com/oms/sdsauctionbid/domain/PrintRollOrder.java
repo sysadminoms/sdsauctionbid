@@ -21,10 +21,10 @@ public class PrintRollOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "Id")
     @ManyToOne
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private User userId;
+    private User user;
 
     @JoinColumn(name = "product_id")
     @ManyToOne
@@ -80,15 +80,15 @@ public class PrintRollOrder {
     private String courierDate;
 
     public String getUserName() {
-        return this.userId.getName();
+        return this.user.getName();
     }
 
     public String getEmail() {
-        return this.userId.getEmailAddress();
+        return this.user.getEmailAddress();
     }
 
     public String getPhone() {
-        return this.userId.getMobileNo();
+        return this.user.getMobileNo();
     }
 
 
