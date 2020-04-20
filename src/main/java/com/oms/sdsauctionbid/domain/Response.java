@@ -28,7 +28,9 @@ public class Response {
         this.contactNo = user.getMobileNo();
         this.email = user.getEmailAddress();
         this.sbd = Optional.ofNullable(user).map(User::getName).orElse("N/A");
-        this.city = user.getCity();
+        if (user.getCity() != null) {
+            this.city = user.getCity().getCityName();
+        } else this.city = "N/A";
         this.status = user.getStatus();
-  }
+    }
 }
