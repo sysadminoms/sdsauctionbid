@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.oms.sdsauctionbid.utils.DoubleFormatter.round;
 import static com.oms.sdsauctionbid.utils.TransactionType.BROKERAGE;
-
 
 @Component
 public class SdsAuctionDelegate {
@@ -245,7 +245,7 @@ public class SdsAuctionDelegate {
                                     winner.getAuctionWinningPercentage(), productPrice,
                                     winner.getAuctionLotSize(), winningBid.getBidTime(), value+forwardValue,
                                     brokeragePaid, userBalance, creditValue - sellValue,
-                                    userBalance + creditValue - sellValue,
+                                    round((userBalance + creditValue - sellValue), 2),
                                     value * winner.getAuctionLotSize());
 
                             claimTicketAsDeliveryResponse.setDeliveryTicketResponse(deliveryTicketResponse);
