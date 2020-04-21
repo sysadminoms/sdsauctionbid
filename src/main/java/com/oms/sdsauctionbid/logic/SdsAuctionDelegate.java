@@ -464,7 +464,7 @@ public class SdsAuctionDelegate {
     }
 
     private double calculateShippingCharge(User user,Integer lots) {
-        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findUsingStateIdAndType(user.getState().getId()
+        List<Object[]> shippingRollCharges = this.shippingChargesRepository.findUsingStateIdAndType(user.getState().getStateId()
                 , "DELIVERY");
         if(shippingRollCharges != null && shippingRollCharges.size() > 0){
               Object[] obj = shippingRollCharges.get(0);
