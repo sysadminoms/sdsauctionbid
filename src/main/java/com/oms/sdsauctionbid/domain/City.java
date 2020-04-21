@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "SDS_City", uniqueConstraints = {
         @UniqueConstraint(columnNames = {
-                "Id"
+                "cityId"
         })
 })
 
@@ -19,7 +19,7 @@ import javax.persistence.*;
 public class City {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long cityId;
 
     @Column(name="city_name")
     private String cityName;

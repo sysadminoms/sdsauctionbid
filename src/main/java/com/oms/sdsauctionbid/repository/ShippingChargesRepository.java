@@ -13,4 +13,11 @@ public interface ShippingChargesRepository extends CrudRepository<ShippingCharge
             "LEFT JOIN sds_state AS STATE\n" +
             "ON STATE.id = SHIPPING_CHARGES.state_id where STATE.state_name=? and UPPER(SHIPPING_CHARGES.type) = ?",nativeQuery = true)
     List<Object[]> findByStateIdAndType(String stateName, String type);
+
+
+    @Query(value = "SELECT price, price_type FROM sds_shipping_charges where STATE_id = ?" +
+            " and Upper(type) = ?",nativeQuery = true)
+    List<Object[]> findUsingStateIdAndType(Long stateId, String type);
+
+
 }
