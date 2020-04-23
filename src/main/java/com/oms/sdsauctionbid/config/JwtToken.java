@@ -1,6 +1,7 @@
 package com.oms.sdsauctionbid.config;
 
 
+import com.oms.sdsauctionbid.domain.TokenCacheDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -60,6 +61,21 @@ public class JwtToken implements Serializable {
         final Date expiration = getExpirationDateFromToken(token);
 
         return expiration.before(new Date());
+
+    }
+
+    public Boolean validateTokenIat(String token, TokenCacheDetails tokenCacheDetails) {
+
+        final Date issuedAtDateFromToken = getIssuedAtDateFromToken(token);
+        int index = tokenCacheDetails.getIatUserId().indexOf("/");
+        final String oldIssuedAtDateFromToken = tokenCacheDetails.getIatUserId().substring(index+1);
+        return issuedAtDateFromToken.toString().equals(oldIssuedAtDateFromToken);
+
+    }
+
+    public Date getIssuedAtDateFromToken(String token) {
+
+        return getClaimFromToken(token, Claims::getIssuedAt);
 
     }
 

@@ -1,5 +1,6 @@
 package com.oms.sdsauctionbid.config;
 
+import com.oms.sdsauctionbid.domain.TokenCacheDetails;
 import com.oms.sdsauctionbid.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -72,6 +73,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userService.loadUserByUsername(username);
+            TokenCacheDetails tokenCacheDetails = this.userService.getTokenCacheDetailsByUserId(username);
+            if(!jwtTokenUtil.validateTokenIat(jwtToken, tokenCacheDetails)){
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            }
        if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());

@@ -3,6 +3,8 @@ package com.oms.sdsauctionbid.service;
 
 import com.oms.sdsauctionbid.domain.*;
 import com.oms.sdsauctionbid.repository.AccountTransactionRepository;
+import com.oms.sdsauctionbid.repository.LoggedInUserDetailsRepository;
+import com.oms.sdsauctionbid.repository.TokenCacheDetailsRepository;
 import com.oms.sdsauctionbid.repository.UserRepository;
 import com.oms.sdsauctionbid.utils.UserTypeName;
 import org.json.simple.JSONObject;
@@ -15,6 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,6 +25,11 @@ import java.util.stream.Collectors;
 public class UserService implements UserDetailsService {
     private UserRepository userRepository;
     private AccountTransactionRepository accountTransactionRepository;
+
+    private TokenCacheDetailsRepository tokenCacheDetailsRepository;
+
+    private LoggedInUserDetailsRepository loggedInUserDetailsRepository;
+
     private UserTypeService userTypeService;
     private static final Logger LOG = LoggerFactory.getLogger(User.class);
 
@@ -48,9 +56,11 @@ public class UserService implements UserDetailsService {
                 .orElse(Double.parseDouble("0"));
     }
 
-    public UserService(UserRepository userRepository, AccountTransactionRepository accountTransactionRepository, UserTypeService userTypeService) {
+    public UserService(UserRepository userRepository, AccountTransactionRepository accountTransactionRepository, TokenCacheDetailsRepository tokenCacheDetailsRepository, LoggedInUserDetailsRepository loggedInUserDetailsRepository, UserTypeService userTypeService) {
         this.userRepository = userRepository;
         this.accountTransactionRepository = accountTransactionRepository;
+        this.tokenCacheDetailsRepository = tokenCacheDetailsRepository;
+        this.loggedInUserDetailsRepository = loggedInUserDetailsRepository;
         this.userTypeService = userTypeService;
     }
 
@@ -215,6 +225,40 @@ public class UserService implements UserDetailsService {
 
         return commissionUserMap;
     }
+
+    public void createTokenCacheDetails(String userId,String tokenIat,String ip,String macAddress) {
+        TokenCacheDetails tokenCacheDetails = getTokenCacheDetailsByUserId(userId);
+        if(tokenCacheDetails == null) {
+            tokenCacheDetails = new TokenCacheDetails();
+        }
+        // deleteTokenCacheDetailsByUserId(userId);
+        tokenCacheDetails.setUserId(userId);
+        tokenCacheDetails.setIatUserId(tokenIat);
+        tokenCacheDetails.setCreationEpochTime(Instant.now().toEpochMilli());
+        tokenCacheDetailsRepository.save(tokenCacheDetails);
+        createLoggedUserDetails(userId,ip,macAddress);
+    }
+
+    public void createLoggedUserDetails(String userId,String ip,String macAddress) {
+        LoggedInUserDetails loggedInUserDetails = new LoggedInUserDetails();
+        loggedInUserDetails.setIpAddress(ip);
+        loggedInUserDetails.setMacAddress(macAddress);
+        loggedInUserDetails.setLoginId(userId);
+        loggedInUserDetails.setLoginDateAndTime(new Date(System.currentTimeMillis()));
+        loggedInUserDetailsRepository.save(loggedInUserDetails);
+    }
+
+    public void deleteTokenCacheDetailsByUserId(String userId) {
+        TokenCacheDetails tokenCacheDetails = getTokenCacheDetailsByUserId(userId);
+        if(tokenCacheDetails != null) {
+            tokenCacheDetailsRepository.deleteById(tokenCacheDetails.getId());
+        }
+    }
+
+    public TokenCacheDetails getTokenCacheDetailsByUserId(String userId) {
+        return Optional.ofNullable(tokenCacheDetailsRepository.getTokenCacheDetailsByUserId(userId)).orElse(null);
+    }
+
 }
 
 
